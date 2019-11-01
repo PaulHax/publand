@@ -1,0 +1,8 @@
+{
+  "eslint.autoFixOnSave":  true, //https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint#overview
+  "eslint.validate":  [
+    "javascript",
+    {"language":  "typescript",  "autoFix":  true  }
+  ],
+  "eslint.packageManager": "yarn",
+}

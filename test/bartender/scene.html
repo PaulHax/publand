@@ -1,0 +1,31 @@
+<a-scene stats>
+  
+  <a-entity id="user_head" camera="fov: 50; near: .01; far:100" look-controls wasd-controls position="0 1.6 2"></a-entity>
+
+  <a-assets>
+    <!-- <audio id="what-to-drink" src="assets/asdf.mp3" preload="auto" loop autoplay></audio> -->
+    <audio id="saw-her-yesterday" src="assets/untitled.wav" preload="auto"></audio>
+    <audio id="what-to-drink" src="assets/what-to-drink.mp3" preload="auto"></audio>
+    <a-asset-item id="bartender-model" src="assets/bartender.glb"></a-asset-item>
+  </a-assets>
+  
+  <a-entity id='bartender' position="-.281 0 -3.6"
+    gltf-model="#bartender-model"
+    scale=".5 .5 .5"
+    cube-env-map="path: assets/pub-env/; extension: jpg;"
+    eyefix
+    animation-mixer-tick="clip: idle; crossFadeDuration: .3;"
+    sound__whatdrink="src: #what-to-drink;"
+    sound__sawher="src: #saw-her-yesterday;"
+    talker="meshJawMorph: Body; jawMorph: MouthOpen; jawFactor: .02;"
+    watcher="lookAtID: #user_head; headBone: mixamorigHead;"
+    bartender
+  ></a-entity>
+
+  <a-entity color-component color="blue" geometry="primitive: box" material="color: #4CC3D9" position="-1 0.5 -3" rotation="0 45 0" shadow></a-entity>
+
+  <a-entity id='sphery' color-component color="red" geometry="primitive: sphere; radius: 1.25" material="color: #EF2D5E" position="0 1.25 -5" shadow></a-entity>
+
+  <a-entity geometry="primitive: cylinder; radius: 0.5; height: 1.5" material="color: #FFC65D" position="1 0.75 -3" shadow spin></a-entity>
+
+</a-scene>

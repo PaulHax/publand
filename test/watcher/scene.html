@@ -1,0 +1,19 @@
+<a-scene stats environment="preset: default; seed: 123;" shadow="enabled: false">
+  
+  <a-entity id="user_head" camera="active: true" look-controls wasd-controls position="0 1.6 0"></a-entity>
+  
+  <a-entity id='bartender' position="-.281 0 -3.6"
+    gltf-model="url(./assets/bartender.glb)"
+    watcher="lookAtID: null; headBone: mixamorigHead;"
+    animation-mixer-tick="clip: idle; crossFadeDuration: .3;"
+    cube-env-map="path: assets/pub-env/; extension: jpg;"
+    scale=".5 .5 .5"
+  ></a-entity>
+
+  <a-entity color-component color="blue" geometry="primitive: box" material="color: #4CC3D9" position="-1 0.5 -3" rotation="0 45 0" shadow></a-entity>
+
+  <a-entity id='sphery' color-component color="red" geometry="primitive: sphere; radius: 1.25" material="color: #EF2D5E" position="0 1.25 -5" shadow></a-entity>
+
+  <a-entity geometry="primitive: cylinder; radius: 0.5; height: 1.5" material="color: #FFC65D" position="1 0.75 -3" shadow spin></a-entity>
+
+</a-scene>
