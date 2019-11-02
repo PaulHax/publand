@@ -81,6 +81,12 @@ export class Talker extends ComponentWrapper<TalkerSchema> {
         // filter.Q.value = 50;
         // this.inputNode = filter;
         // this.inputNode.connect(analyser);
+
+        this.myEntity.addEventListener('sound-ended', this.endSound);
+    }
+
+    remove() {
+        this.myEntity.removeEventListener('sound-ended', this.endSound);
     }
 
     load(model: THREE.Object3D) {
@@ -108,13 +114,17 @@ export class Talker extends ComponentWrapper<TalkerSchema> {
         });
     }
 
+    endSound(e) {
+        if (this.currentSound && e.id === this.currentSound.id) {
+            this.currentSound = null;
+        }
+    }
+
     tick() {
-        if (this.meshWithMorph) {
-            // const volume = this.audioAnalyser.getAverageFrequency();
+        if (this.currentSound && this.meshWithMorph) {
             let sum = 0;
             const data = this.audioData;
             const size = this.analyser.fftSize;
-            // this.analyser.getByteTimeDomainData(data);
             this.analyser.getByteFrequencyData(data);
             for (let i = 0; i < size; i++) {
                 sum += data[i];
@@ -128,7 +138,8 @@ export class Talker extends ComponentWrapper<TalkerSchema> {
             }
             this.morphInfluences[this.jawMorphIndex] = currentV;
             //todo  low pass filter: try double expoential moving average filter.
-            //ToDo Frame of lag as sound starts before mouth movement and we can't precive asynchory if visual is under 130 ms after audio ?
+            //ToDo Frame of lag as sound starts before mouth movement as we can't precive asynchory if visual is under 130 ms after audio ?
+            // https://pdfs.semanticscholar.org/95ba/3dfffeb7dd133b23b90f1e25eee7a2b7015a.pdf?_ga=2.166311166.1791214883.1572632425-210607018.1572632425
             // this.morphInfluences[this.jawMorphIndex] = lastV * Talker.VOL_FILTER + currentV * Talker.VOL_F_INV;
         }
     }

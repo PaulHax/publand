@@ -3,23 +3,18 @@ import { utils, THREE, Component } from 'aframe';
 import { ComponentWrapper } from '../aframe-typescript-toolkit';
 
 enum State {
+    Holding,
     Waiting,
     BarWork,
-    Holding,
+    DayDream,
 }
 
-interface BartenderSchema {}
-
-export class Bartender extends ComponentWrapper<BartenderSchema> {
+export class Bartender extends ComponentWrapper {
     private state = State.Waiting;
     private userHead: THREE.Object3D;
     private b3D: THREE.Object3D;
     private watcher: Component;
     private talker: Component;
-
-    constructor() {
-        super({});
-    }
 
     init() {
         this.userHead = document.querySelector('#user_head').object3D;
@@ -29,7 +24,9 @@ export class Bartender extends ComponentWrapper<BartenderSchema> {
         this.tick = utils.throttleTick(this.tick, 500, this);
     }
 
-    tick(t, dt) {
+    //Throttled fyi
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    tick(_t: number, _dt: number) {
         this.think();
     }
 
@@ -48,16 +45,29 @@ export class Bartender extends ComponentWrapper<BartenderSchema> {
                 if (d < 3) {
                     this.el.setAttribute('watcher', { lookAtID: '#user_head' });
                     this.talker.speak('whatdrink');
-                    this.el.setAttribute('animation-mixer', { clip: 'talking', timeScale: 1, crossFadeDuration: 0.4 });
+                    this.el.setAttribute('animation-mixer-tick', {
+                        clip: 'talking',
+                        timeScale: 1,
+                        crossFadeDuration: 0.4,
+                    });
+                    this.state = State.Holding;
                     setTimeout(() => {
                         this.state = State.BarWork;
-                    }, 6000);
-                    this.state = State.Holding;
+                    }, 10000);
                 }
             } else if (State.BarWork === this.state) {
-                this.el.setAttribute('watcher', { lookAtID: 'null' });
-                this.el.setAttribute('animation-mixer', { clip: 'idle', timeScale: 1, crossFadeDuration: 0.4 });
+                this.el.setAttribute('watcher', { lookAtID: '#register_screen' });
+                this.el.setAttribute('animation-mixer-tick', { clip: 'idle', timeScale: 1, crossFadeDuration: 0.4 });
                 this.state = State.Holding;
+                setTimeout(() => {
+                    this.state = State.DayDream;
+                }, 4000 + 2000 * Math.random());
+            } else if (State.DayDream === this.state) {
+                this.el.setAttribute('watcher', { lookAtID: 'null' });
+                this.state = State.Holding;
+                setTimeout(() => {
+                    this.state = State.BarWork;
+                }, 1000 + 1000 * Math.random());
             }
         };
     })();

@@ -1,4 +1,4 @@
-<a-scene environment="preset: default; seed: 123;" shadow="enabled: false">
+<a-scene toggle-s environment="preset: default; seed: 123;" shadow="enabled: false">
   <require path="templates/assets.html"></require>
 
   <a-entity id="user_head" camera="active: true" look-controls wasd-controls position="0 1.6 0"></a-entity>
@@ -10,11 +10,13 @@
   <a-entity id='room' 
     gltf-model="#pub"
     position="0 .525 -2" scale=".7 .7 .7"
-    cube-env-map="path: assets/pub-env/; extension: jpg;"      
+    cube-env-map="path: assets/pub-env/; extension: jpg;"
   ></a-entity>
 
+  <a-entity id="register_screen" position=".822 1.314 -2.859"></a-entity>
+
   <a-entity id='bartender' 
-    position=".281 0 -3.6"
+    position=".8 0 -3.6"
     scale=".5 .5 .5"
     gltf-model="#bartender-model"
     cube-env-map="path: assets/pub-env/; extension: jpg;"
@@ -23,7 +25,7 @@
     sound__whatdrink="src: #what-to-drink;"
     sound__sawher="src: #saw-her-yesterday;"
     talker="meshJawMorph: Body; jawMorph: MouthOpen; jawFactor: .02;"
-    watcher="lookAtID: #user_head; headBone: mixamorigHead;"
+    watcher="lookAtID: null; headBone: mixamorigHead;"
     bartender
   ></a-entity>
 

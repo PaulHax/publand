@@ -26,16 +26,16 @@ function logKey(e) {
 
 window.addEventListener('keydown', logKey);
 
-let isSphere = true;
-function toggle() {
-    const bman = document.querySelector('#bartender');
-    isSphere = !isSphere;
-    if (isSphere) {
-        bman.setAttribute('watcher', { lookAtID: '#user_head' });
-    } else {
-        bman.setAttribute('watcher', { lookAtID: '#room' });
-    }
-    setTimeout(toggle, 3000);
-}
+// let isSphere = true;
+// function toggle() {
+//     const bman = document.querySelector('#bartender');
+//     isSphere = !isSphere;
+//     if (isSphere) {
+//         bman.setAttribute('watcher', { lookAtID: '#user_head' });
+//     } else {
+//         bman.setAttribute('watcher', { lookAtID: '#room' });
+//     }
+//     setTimeout(toggle, 3000);
+// }
 
-setTimeout(toggle, 1000);
+// setTimeout(toggle, 1000);
