@@ -12,7 +12,7 @@ const PLUGINS = [
   new webpack.EnvironmentPlugin({
     NODE_ENV: 'development' // use 'development' unless process.env.NODE_ENV is defined
   }),
-  new webpack.HotModuleReplacementPlugin(),
+  // new webpack.HotModuleReplacementPlugin(),
   new ForkTsCheckerWebpackPlugin()
 ];
 
@@ -21,8 +21,8 @@ let config =
   mode: nodeEnv,
   devtool: isProd ? "hidden-source-map" : "source-map",
   devServer: {
-    disableHostCheck: true,
-    hotOnly: true
+    // disableHostCheck: true,
+    hotOnly: true,
   },
   //entry set dynamicaly below
   output: {

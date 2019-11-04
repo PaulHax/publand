@@ -2,7 +2,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "start": "webpack-dev-server --host 0.0.0.0 --progress --colors --inline --port 3000",
+    "start": "webpack-dev-server --host 0.0.0.0 --progress --colors --port 3000",
     "lint": "eslint ./src --ext .js,.ts",
     "lint:fix": "eslint ./src --ext .js,.ts --fix",
     "build": "cross-env NODE_ENV=production webpack",

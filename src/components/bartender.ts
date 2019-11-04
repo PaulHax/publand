@@ -9,12 +9,25 @@ enum State {
     DayDream,
 }
 
-export class Bartender extends ComponentWrapper {
+interface BartenderSchema {
+    readonly fake: number;
+}
+
+export class Bartender extends ComponentWrapper<BartenderSchema> {
     private state = State.Waiting;
     private userHead: THREE.Object3D;
     private b3D: THREE.Object3D;
     private watcher: Component;
     private talker: Component;
+
+    constructor() {
+        super({
+            fake: {
+                type: 'number',
+                default: 1,
+            },
+        });
+    }
 
     init() {
         this.userHead = document.querySelector('#user_head').object3D;
@@ -56,7 +69,7 @@ export class Bartender extends ComponentWrapper {
                     }, 8000);
                 }
             } else if (State.BarWork === this.state) {
-                this.el.setAttribute('watcher', { lookAtID: '#register_screen' });
+                this.el.setAttribute('watcher', { lookAtID: '#register_screen', speed: THREE.Math.degToRad(150) });
                 this.el.setAttribute('animation-mixer-tick', { clip: 'idle', timeScale: 1, crossFadeDuration: 0.4 });
                 this.state = State.Holding;
                 setTimeout(() => {

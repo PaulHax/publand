@@ -8,6 +8,7 @@ import { ComponentWrapper } from '../aframe-typescript-toolkit';
 interface WatcherSchema {
     readonly lookAtID: string; // Todo make selector?
     readonly headBone: string;
+    readonly speed: number;
 }
 
 export class Watcher extends ComponentWrapper<WatcherSchema> {
@@ -32,6 +33,10 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
             headBone: {
                 type: 'string',
                 default: '',
+            },
+            speed: {
+                type: 'number',
+                default: Watcher.ROTATE_SPEED_EASED_BOOST,
             },
         });
     }
@@ -120,7 +125,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                         //cap speed
                         let angleDiff = q1.angleTo(this.model.quaternion);
                         let n = angleDiff / Math.PI; //normalized angle change
-                        let increasedSpeed = Math.pow(n, Watcher.ROTATE_EASING) * Watcher.ROTATE_SPEED_EASED_BOOST; //easing https://gist.github.com/gre/1650294
+                        let increasedSpeed = Math.pow(n, Watcher.ROTATE_EASING) * this.data.speed; //easing https://gist.github.com/gre/1650294
                         let speed = Watcher.ROTATE_SPEED_BASE + increasedSpeed;
                         let maxAngleChange = speed * (dt / 1000);
                         if (angleDiff > maxAngleChange) {
@@ -146,7 +151,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                         q2; //account for new parent orientation
                         angleDiff = q3.angleTo(this.headBone.quaternion);
                         n = angleDiff / Math.PI; //normalized angle change
-                        increasedSpeed = Math.pow(n, Watcher.ROTATE_EASING) * Watcher.ROTATE_SPEED_EASED_BOOST; //easing https://gist.github.com/gre/1650294
+                        increasedSpeed = Math.pow(n, Watcher.ROTATE_EASING) * this.data.speed; //easing https://gist.github.com/gre/1650294
                         speed = Watcher.ROTATE_SPEED_BASE + increasedSpeed;
                         maxAngleChange = speed * (dt / 1000);
                         if (angleDiff > maxAngleChange) {

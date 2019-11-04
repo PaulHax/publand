@@ -1,7 +1,8 @@
 <a-scene id="pubscene" toggle-s environment="preset: default; seed: 123;" shadow="enabled: false">
   <require path="templates/assets.html"></require>
 
-  <a-entity id="user_head" camera="active: true" look-controls wasd-controls position="0 1.6 0"></a-entity>
+  <!-- Todo needs rotation compoent to avoid error (when assest time out?)-->
+  <a-entity id="user_head" camera="active: true" look-controls wasd-controls position="0 1.6 0" rotation="0 0 0"></a-entity>
 
   <a-entity light="type: ambient; color: #FFF; intensity: .3;"></a-entity>
   <a-entity light="type: directional; color: #FFF; intensity: 2.51" position="0.1 1 1"></a-entity>
