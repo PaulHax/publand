@@ -53,7 +53,7 @@ export class Bartender extends ComponentWrapper {
                     this.state = State.Holding;
                     setTimeout(() => {
                         this.state = State.BarWork;
-                    }, 10000);
+                    }, 8000);
                 }
             } else if (State.BarWork === this.state) {
                 this.el.setAttribute('watcher', { lookAtID: '#register_screen' });

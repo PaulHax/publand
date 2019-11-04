@@ -28,7 +28,7 @@ export class Talker extends ComponentWrapper<TalkerSchema> {
     private myEntity: TalkingEntity;
     private currentSound: SoundComponent;
 
-    private static readonly JITTER_RADIUS = 0.9; // Higher means more filtering or weighting of old signal
+    private static readonly JITTER_RADIUS = 0.8; // Higher means more filtering or weighting of old signal
     // private static readonly VOL_FILTER = 0; // Higher means more filtering or weighting of old signal
     // private static readonly VOL_F_INV = 1 - Talker.VOL_FILTER;
 

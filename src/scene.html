@@ -1,4 +1,4 @@
-<a-scene toggle-s environment="preset: default; seed: 123;" shadow="enabled: false">
+<a-scene id="pubscene" toggle-s environment="preset: default; seed: 123;" shadow="enabled: false">
   <require path="templates/assets.html"></require>
 
   <a-entity id="user_head" camera="active: true" look-controls wasd-controls position="0 1.6 0"></a-entity>
@@ -6,7 +6,8 @@
   <a-entity light="type: ambient; color: #FFF; intensity: .3;"></a-entity>
   <a-entity light="type: directional; color: #FFF; intensity: 2.51" position="0.1 1 1"></a-entity>
 
-  <!-- gltf-model="#pub"  -->
+  <a-entity sound="src: #pub-background; positional: false; autoplay: true; loop: true; volume: 1"></a-entity>
+
   <a-entity id='room' 
     gltf-model="#pub"
     position="0 .525 -2" scale=".7 .7 .7"

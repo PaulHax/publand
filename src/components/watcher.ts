@@ -13,12 +13,14 @@ interface WatcherSchema {
 export class Watcher extends ComponentWrapper<WatcherSchema> {
     private model: THREE.Object3D;
     private headBone: THREE.Bone;
-    private eyeMatrix = new THREE.Matrix4().makeTranslation(0, 0.11, 0);
+    private eyeOffset = new THREE.Matrix4().makeTranslation(0, 0.11, 0);
     private lastQ = new THREE.Quaternion();
     private lookAtTarget: THREE.Object3D;
     private mixerWeight = 1;
     private animationMixer: Component;
-    private static readonly ROTATE_SPEED = THREE.Math.degToRad(210); // Degrees per second
+    private static readonly ROTATE_SPEED_EASED_BOOST = THREE.Math.degToRad(350); // Degrees per second
+    private static readonly ROTATE_SPEED_BASE = THREE.Math.degToRad(30); // Degrees per second
+    private static readonly ROTATE_EASING = 1.1; // Higher is more easing in
     private static readonly HEAD_YAW_MAX = 40; // Degrees
 
     constructor() {
@@ -99,12 +101,14 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
             if (this.model) {
                 if (this.headBone) {
                     q2.copy(this.headBone.quaternion); //save it before animation overwrites
+                    q3.setFromRotationMatrix(this.headBone.matrixWorld); //for speed check
                 }
                 if (this.animationMixer) {
                     this.animationMixer.tickManual(t, dt);
                 }
                 if (this.headBone) {
                     if (this.lookAtTarget) {
+                        // Rotate body
                         //this.model.updateMatrixWorld();
                         const modelY = this.model.matrixWorld.elements[13]; //get y
                         lookAtPos.setFromMatrixPosition(this.lookAtTarget.matrixWorld);
@@ -112,33 +116,42 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                         lookAtPos.y = modelY; //keep feet level
                         q1.copy(this.model.quaternion); //save for speed check
                         this.model.lookAt(lookAtPos);
+
                         //cap speed
                         let angleDiff = q1.angleTo(this.model.quaternion);
-                        const maxAngleChange = Watcher.ROTATE_SPEED * (dt / 1000);
+                        let n = angleDiff / Math.PI; //normalized angle change
+                        let increasedSpeed = Math.pow(n, Watcher.ROTATE_EASING) * Watcher.ROTATE_SPEED_EASED_BOOST; //easing https://gist.github.com/gre/1650294
+                        let speed = Watcher.ROTATE_SPEED_BASE + increasedSpeed;
+                        let maxAngleChange = speed * (dt / 1000);
                         if (angleDiff > maxAngleChange) {
                             q1.rotateTowards(this.model.quaternion, maxAngleChange);
                             this.model.quaternion.copy(q1);
                         }
 
-                        //Do the head
+                        // Rotate head
                         lookAtPos.y = saveForHead;
-                        //this.model.updateMatrixWorld(); // need this or neck overshoots (cuz its 1 frame behind?)
-                        this.headBone.updateWorldMatrix(true, false);
+                        //this.headBone.updateWorldMatrix(true, false); // Keep neck from overshooting cuz it's 1 frame behind
                         m1.copy(this.headBone.matrixWorld);
-                        m1.premultiply(this.eyeMatrix);
-                        v1.setFromMatrixPosition(m1); //eyePos
+                        m1.premultiply(this.eyeOffset);
+                        v1.setFromMatrixPosition(m1); // v1 = eyePos in world space
                         m1.lookAt(lookAtPos, v1, this.headBone.up);
-                        //old rotation already saved in q2
                         this.headBone.quaternion.setFromRotationMatrix(m1); //target rotation in world
+
                         //world to parent space
-                        m1.extractRotation(this.headBone.parent.matrixWorld); //if parent not null?
+                        m1.extractRotation(this.headBone.parent.matrixWorld);
                         q1.setFromRotationMatrix(m1);
                         this.headBone.quaternion.premultiply(q1.inverse());
-                        //cap speed
-                        angleDiff = q2.angleTo(this.headBone.quaternion); //old rotation already saved in q2
+
+                        //calculate speed
+                        q2; //account for new parent orientation
+                        angleDiff = q3.angleTo(this.headBone.quaternion);
+                        n = angleDiff / Math.PI; //normalized angle change
+                        increasedSpeed = Math.pow(n, Watcher.ROTATE_EASING) * Watcher.ROTATE_SPEED_EASED_BOOST; //easing https://gist.github.com/gre/1650294
+                        speed = Watcher.ROTATE_SPEED_BASE + increasedSpeed;
+                        maxAngleChange = speed * (dt / 1000);
                         if (angleDiff > maxAngleChange) {
                             q2.rotateTowards(this.headBone.quaternion, maxAngleChange);
-                            this.headBone.quaternion.copy(q2); //todo optomize
+                            this.headBone.quaternion.copy(q2);
                         }
 
                         //clamp neck rotation with swing + twist parameterization

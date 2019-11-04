@@ -25,8 +25,8 @@ function toggle() {
         bman.setAttribute('watcher', { lookAtID: '#user_head' });
         console.log('head');
     } else {
-        //bman.setAttribute('watcher', { lookAtID: '#sphery' });
-        bman.setAttribute('watcher', { lookAtID: 'null' });
+        bman.setAttribute('watcher', { lookAtID: '#sphery' });
+        //bman.setAttribute('watcher', { lookAtID: 'null' });
     }
     setTimeout(toggle, 3000);
 }

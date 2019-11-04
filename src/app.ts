@@ -8,6 +8,8 @@ import { Bartender } from './components/bartender';
 Bartender;
 import 'aframe-extras/src/misc/cube-env-map';
 
+import { THREE } from 'aframe';
+
 //webpack up js components
 function requireAll(req) {
     req.keys().forEach(req);
@@ -25,6 +27,23 @@ function logKey(e) {
 }
 
 window.addEventListener('keydown', logKey);
+
+function initSound() {
+    const scene = (document.querySelector('#pubscene') as unknown) as THREE.Scene & {
+        audioListener: THREE.AudioListener;
+    };
+    if (!scene.audioListener) {
+        scene.audioListener = new THREE.AudioListener();
+    }
+    scene.audioListener.context.resume();
+    window.removeEventListener('keydown', initSound);
+    window.removeEventListener('mousedown', initSound);
+    window.removeEventListener('touchstart', initSound);
+}
+
+window.addEventListener('keydown', initSound);
+window.addEventListener('mousedown', initSound);
+window.addEventListener('touchstart', initSound);
 
 // let isSphere = true;
 // function toggle() {

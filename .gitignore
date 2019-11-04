@@ -61,4 +61,6 @@ package-lock.json
 exports/
 *.sw*
 /build
+dist
 stats.json
+.netlify
