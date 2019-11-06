@@ -57,10 +57,11 @@ dump.rdb
 play.html
 .html.map.json
 package-lock.json
-
-exports/
+stats.json
 *.sw*
+exports/
+
 /build
 dist
-stats.json
 .netlify
+/art

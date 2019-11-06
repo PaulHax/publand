@@ -135,7 +135,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
 
                         // Rotate head
                         lookAtPos.y = saveForHead;
-                        //this.headBone.updateWorldMatrix(true, false); // Keep neck from overshooting cuz it's 1 frame behind
+                        this.headBone.updateWorldMatrix(true, false); // Keep neck from overshooting cuz it's 1 frame behind
                         m1.copy(this.headBone.matrixWorld);
                         m1.premultiply(this.eyeOffset);
                         v1.setFromMatrixPosition(m1); // v1 = eyePos in world space

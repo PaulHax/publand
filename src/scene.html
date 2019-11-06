@@ -1,15 +1,18 @@
-<a-scene id="pubscene" toggle-s environment="preset: default; seed: 123;" shadow="enabled: false">
+<a-scene id="pubscene" toggle-s environment="preset: default; seed: 123;" shadow="enabled: false"
+  gltf-model="dracoDecoderPath: assets/dracolib/;"
+  renderer="colorManagement: true;"
+>
   <require path="templates/assets.html"></require>
 
   <!-- Todo needs rotation compoent to avoid error (when assest time out?)-->
   <a-entity id="user_head" camera="active: true" look-controls wasd-controls position="0 1.6 0" rotation="0 0 0"></a-entity>
 
-  <a-entity light="type: ambient; color: #FFF; intensity: .3;"></a-entity>
-  <a-entity light="type: directional; color: #FFF; intensity: 2.51" position="0.1 1 1"></a-entity>
+  <a-entity light="type: ambient; color: #FFF; intensity: .1;"></a-entity>
+  <a-entity light="type: directional; color: #FFF; intensity: 1.7" position="0.1 1 1"></a-entity>
 
   <a-entity sound="src: #pub-background; positional: false; autoplay: true; loop: true; volume: 1"></a-entity>
 
-  <a-entity id='room' 
+  <a-entity id='room'
     gltf-model="#pub"
     position="0 .525 -2" scale=".7 .7 .7"
     cube-env-map="path: assets/pub-env/; extension: jpg;"
@@ -25,7 +28,6 @@
     eyefix
     animation-mixer-tick="clip: idle; crossFadeDuration: .3;"
     sound__whatdrink="src: #what-to-drink;"
-    sound__sawher="src: #saw-her-yesterday;"
     talker="meshJawMorph: Body; jawMorph: MouthOpen; jawFactor: .02;"
     watcher="lookAtID: null; headBone: mixamorigHead;"
     bartender
