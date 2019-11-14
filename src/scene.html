@@ -1,36 +1,61 @@
-<a-scene id="pubscene" toggle-s environment="preset: default; seed: 123;" shadow="enabled: false"
+<a-scene id="thescene" toggle-stats shadow="enabled: false"
   gltf-model="dracoDecoderPath: assets/dracolib/;"
   renderer="colorManagement: true;"
+  loading-screen="backgroundColor: black;"
+  render-order="menuBackground, menuItem, menuItem"
 >
   <require path="templates/assets.html"></require>
 
-  <!-- Todo needs rotation compoent to avoid error (when assest time out?)-->
-  <a-entity id="user_head" camera="active: true" look-controls wasd-controls position="0 1.6 0" rotation="0 0 0"></a-entity>
+  <!-- Todo needs rotation compoent to avoid error (when assest time out?)
+  
+  
+    bind__my-look-controls="pointerLockEnabled: isShowInstructions" 
+  -->
 
+  <a-entity id='user_head' camera
+    bind__my-look-controls="pointerLockEnabled: !isShowInstructions" 
+    wasd-controls
+    position="0 1.6 0" rotation="0 0 0">
+  </a-entity>
+    
   <a-entity light="type: ambient; color: #FFF; intensity: .1;"></a-entity>
   <a-entity light="type: directional; color: #FFF; intensity: 1.7" position="0.1 1 1"></a-entity>
-
+  
   <a-entity sound="src: #pub-background; positional: false; autoplay: true; loop: true; volume: 1"></a-entity>
 
-  <a-entity id='room'
-    gltf-model="#pub"
-    position="0 .525 -2" scale=".7 .7 .7"
-    cube-env-map="path: assets/pub-env/; extension: jpg;"
-  ></a-entity>
+  
+  <a-mixin id="buttonMain" mixin="button" bind-toggle__raycastable="isShowInstructions"></a-mixin>
+  <a-entity id="startMenu" position="0 1.6 -2" bind-toggle__raycastable="isShowInstructions" bind__visible="isShowInstructions">
+      <a-entity id="menuBackground" mixin="slice" slice9="height: 2; width: 2; color: #171717" render-order="menuBackground"></a-entity>
+      <a-entity id="title" mixin="font" text="value: Pub Land; color: #FAFAFA; width: 9; align: center;" position="0 .7 0.01" render-order="menuItem"></a-entity>
+      <a-entity id="controls" mixin="font" text="value: Turn - Mouse \n Move - WASD keys; color: #FAFAFA; width: 5; align: left; anchor: left;" position="-.95 .1 0.01" render-order="menuItem"></a-entity>
+      <a-entity mixin="buttonMain" text="value: Start; color: #FAFAFA; width: 5" proxy-event="as: hideInstructions" position="0 -.5 0.02"
+        bind__visible="isRoomLoaded"></a-entity>
+  </a-entity>
 
-  <a-entity id="register_screen" position=".822 1.314 -2.859"></a-entity>
+  <a-entity id="pubgroup" bind__visible="!isShowInstructions">
+    <a-entity id='room'
+      gltf-model="#pub"
+      position="0 0 -2" scale=".7 .7 .7"
+      cube-env-map="path: assets/pub-env/; extension: jpg;"
+      proxy-event="event: loaded; to: a-scene; as: roomLoaded"
+    ></a-entity>
+    <a-entity id="register_screen" position=".822 1.314 -2.859"></a-entity>
+    <a-entity id='bartender'
+      position=".8 0 -3.6"
+      scale=".5 .5 .5"
+      gltf-model="#bartender-model"
+      cube-env-map="path: assets/pub-env/; extension: jpg;"
+      eyefix
+      animation-mixer-tick="clip: idle; crossFadeDuration: .3;"
+      sound__whatdrink="src: #what-to-drink;"
+      talker="meshJawMorph: Body; jawMorph: MouthOpen; jawFactor: .02;"
+      watcher="lookAtID: null; headBone: mixamorigHead;"
+      bartender
+    ></a-entity>
+  </a-entitiy>
 
-  <a-entity id='bartender' 
-    position=".8 0 -3.6"
-    scale=".5 .5 .5"
-    gltf-model="#bartender-model"
-    cube-env-map="path: assets/pub-env/; extension: jpg;"
-    eyefix
-    animation-mixer-tick="clip: idle; crossFadeDuration: .3;"
-    sound__whatdrink="src: #what-to-drink;"
-    talker="meshJawMorph: Body; jawMorph: MouthOpen; jawFactor: .02;"
-    watcher="lookAtID: null; headBone: mixamorigHead;"
-    bartender
-  ></a-entity>
+  
+  <a-entity id="mouseCursor" cursor="rayOrigin: mouse" raycaster="objects: [raycastable]"></a-entity>
 
 </a-scene>

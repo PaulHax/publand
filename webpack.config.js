@@ -18,6 +18,9 @@ const PLUGINS = [
 
 let config = 
 {
+  // externals: {
+  //   aframe: 'AFRAME'
+  // },
   mode: nodeEnv,
   devtool: isProd ? "hidden-source-map" : "source-map",
   devServer: {

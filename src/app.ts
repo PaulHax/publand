@@ -7,14 +7,24 @@ EyeFix;
 import { Bartender } from './components/bartender';
 Bartender;
 import 'aframe-extras/src/misc/cube-env-map';
+import 'aframe-slice9-component';
+import 'aframe-render-order-component';
+import 'aframe-proxy-event-component';
 
-import { THREE } from 'aframe';
+import { THREE, registerComponent } from 'aframe';
+import './state';
 
 //webpack up js components
 function requireAll(req) {
     req.keys().forEach(req);
 }
 requireAll(require.context('./components/', true, /\.js$/));
+
+registerComponent('raycastable', {});
+
+require('./index.css');
+
+require('./start.html'); // inject into index.html with hot reloading
 require('./scene.html'); // inject into index.html with hot reloading
 
 function logKey(e) {
@@ -22,14 +32,13 @@ function logKey(e) {
     if (e.code === 'Space') {
         bman.components.talker.speak('whatdrink');
     }
-    // if (e.code === 'KeyV') {
-    // }
 }
 
 window.addEventListener('keydown', logKey);
 
+// After user does something, can init AudioContext for background sound.
 function initSound() {
-    const scene = (document.querySelector('#pubscene') as unknown) as THREE.Scene & {
+    const scene = (document.querySelector('#thescene') as unknown) as THREE.Scene & {
         audioListener: THREE.AudioListener;
     };
     if (!scene.audioListener) {
@@ -44,17 +53,3 @@ function initSound() {
 window.addEventListener('keydown', initSound);
 window.addEventListener('mousedown', initSound);
 window.addEventListener('touchstart', initSound);
-
-// let isSphere = true;
-// function toggle() {
-//     const bman = document.querySelector('#bartender');
-//     isSphere = !isSphere;
-//     if (isSphere) {
-//         bman.setAttribute('watcher', { lookAtID: '#user_head' });
-//     } else {
-//         bman.setAttribute('watcher', { lookAtID: '#room' });
-//     }
-//     setTimeout(toggle, 3000);
-// }
-
-// setTimeout(toggle, 1000);

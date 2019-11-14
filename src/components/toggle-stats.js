@@ -1,4 +1,4 @@
-AFRAME.registerComponent('toggle-s', {
+AFRAME.registerComponent('toggle-stats', {
   init: function () {
     this.onKeyup = this.onKeyup.bind(this);
     this.isShowing = false;

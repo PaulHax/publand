@@ -1,0 +1,21 @@
+html {
+  background: #000;
+}
+
+.a-loader-title {
+  animation: loaderTitle 1s infinite alternate;
+  color: rgba(0,0,0,0);
+  background: none;
+  background-image: url('../assets/introLogo.jpg');
+  height: 25vh;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-top: 0;
+  background-size: contain;
+}
+
+@keyframes loaderTitle {
+  0% { opacity: 1; }
+  50% { opacity: 0.8; }
+  100% { opacity: 1; }
+}

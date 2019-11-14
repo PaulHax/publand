@@ -4,4 +4,20 @@
     <!-- Array buffer asset to fix FireFox not playing sound on remote server-->
     <a-asset-item id="pub-background" src="assets/pub-background.mp3" response-type="arraybuffer"></a-asset-item>
     <a-asset-item id="what-to-drink" src="assets/what-to-drink.mp3" response-type="arraybuffer"></a-asset-item>
+    <a-asset-item id="what-to-drink" src="assets/what-to-drink.mp3" response-type="arraybuffer"></a-asset-item>
+
+    <img id="sliceImg" src="assets/slice.png">
+
+     <!-- Base mixins. -->
+     <a-mixin id="font" text="font: roboto"></a-mixin>
+     <a-mixin id="slice" slice9="color: #050505; transparent: true; opacity: 0.9; src: #sliceImg; left: 50; right: 52; top: 50; bottom: 52; padding: 0.15"></a-mixin> 
+
+     <a-mixin id="buttonBackground" mixin="slice" slice9="width: 1.3; height: 0.3; color: #030303" render-order="button"></a-mixin> 
+     <a-mixin
+       id="buttonHoverEffect"
+       animation__mouseenter="property: components.slice9.material.color; type: color; from: #030303; to: #333; easing: easeOutCubic; dur: 150; startEvents: mouseenter"
+       animation__mouseleave="property: components.slice9.material.color; type: color; from: #333; to: #030303; easing: easeOutCubic; dur: 150; startEvents: mouseleave"></a-mixin>
+     <a-mixin id="buttonText" mixin="font" text="align: center; width: 2.5; zOffset: 0.01; color: #333"></a-mixin>
+     <a-mixin id="button" mixin="buttonBackground buttonHoverEffect buttonText" render-order="button" proxy-event="event: click; to: a-scene; captureBubbles: true"></a-mixin>
+
 </a-assets>

@@ -39,7 +39,6 @@ export class Bartender extends ComponentWrapper<BartenderSchema> {
         this.tick = utils.throttleTick(this.tick, 500, this);
 
         document.querySelector('a-scene').addEventListener('loaded', () => {
-            console.log('ladded');
             setTimeout(() => {
                 this.state = State.DayDream;
             }, 2000);
@@ -55,12 +54,18 @@ export class Bartender extends ComponentWrapper<BartenderSchema> {
     think = (function() {
         return function() {
             if (State.BarWork === this.state) {
-                this.el.setAttribute('watcher', { lookAtID: '#register_screen', speed: THREE.Math.degToRad(150) });
-                this.el.setAttribute('animation-mixer-tick', { clip: 'idle', timeScale: 1, crossFadeDuration: 0.4 });
-                this.state = State.Holding;
-                setTimeout(() => {
-                    this.state = State.DayDream;
-                }, 4000 + 2000 * Math.random());
+                if (!this.checkForHello()) {
+                    this.el.setAttribute('watcher', { lookAtID: '#register_screen', speed: THREE.Math.degToRad(150) });
+                    this.el.setAttribute('animation-mixer-tick', {
+                        clip: 'idle',
+                        timeScale: 1,
+                        crossFadeDuration: 0.4,
+                    });
+                    this.state = State.Holding;
+                    setTimeout(() => {
+                        this.state = State.DayDream;
+                    }, 4000 + 2000 * Math.random());
+                }
             } else if (State.DayDream === this.state) {
                 if (!this.checkForHello()) {
                     //keep dreaming
@@ -94,6 +99,7 @@ export class Bartender extends ComponentWrapper<BartenderSchema> {
             v2.y = v1.y;
             const d = v1.distanceTo(v2);
             if (d < 3) {
+                // Talk to users
                 this.el.setAttribute('watcher', { lookAtID: '#user_head' });
                 this.talker.speak('whatdrink');
                 this.el.setAttribute('animation-mixer-tick', {
