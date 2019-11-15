@@ -3,7 +3,7 @@ html {
 }
 
 .a-loader-title {
-  animation: loaderTitle 1s infinite alternate;
+  animation: loaderTitle 3s infinite alternate;
   color: rgba(0,0,0,0);
   background: none;
   background-image: url('../assets/introLogo.jpg');

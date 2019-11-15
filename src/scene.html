@@ -7,13 +7,11 @@
   <require path="templates/assets.html"></require>
 
   <!-- Todo needs rotation compoent to avoid error (when assest time out?)
-  
-  
-    bind__my-look-controls="pointerLockEnabled: isShowInstructions" 
+
   -->
 
   <a-entity id='user_head' camera
-    bind__my-look-controls="pointerLockEnabled: !isShowInstructions" 
+    bind__my-look-controls="pointerLockEnabled: !isShowInstructions; mouseEnabled: !isShowInstructions" 
     wasd-controls
     position="0 1.6 0" rotation="0 0 0">
   </a-entity>
@@ -23,14 +21,18 @@
   
   <a-entity sound="src: #pub-background; positional: false; autoplay: true; loop: true; volume: 1"></a-entity>
 
-  
-  <a-mixin id="buttonMain" mixin="button" bind-toggle__raycastable="isShowInstructions"></a-mixin>
-  <a-entity id="startMenu" position="0 1.6 -2" bind-toggle__raycastable="isShowInstructions" bind__visible="isShowInstructions">
-      <a-entity id="menuBackground" mixin="slice" slice9="height: 2; width: 2; color: #171717" render-order="menuBackground"></a-entity>
-      <a-entity id="title" mixin="font" text="value: Pub Land; color: #FAFAFA; width: 9; align: center;" position="0 .7 0.01" render-order="menuItem"></a-entity>
-      <a-entity id="controls" mixin="font" text="value: Turn - Mouse \n Move - WASD keys; color: #FAFAFA; width: 5; align: left; anchor: left;" position="-.95 .1 0.01" render-order="menuItem"></a-entity>
-      <a-entity mixin="buttonMain" text="value: Start; color: #FAFAFA; width: 5" proxy-event="as: hideInstructions" position="0 -.5 0.02"
-        bind__visible="isRoomLoaded"></a-entity>
+  <a-entity id="startMenu" position="0 1.6 -2" bind-toggle__raycastable="isShowInstructions" bind__visible="!!isShowInstructions">
+    <a-entity id="menuBackground" mixin="slice" slice9="height: 2; width: 2; color: #171717" render-order="menuBackground"></a-entity>
+    <a-entity id="title" mixin="font" text="value: Pub Land; color: #FAFAFA; width: 9; align: center;" position="0 .7 0.01" render-order="menuItem"></a-entity>
+    <a-entity id="controls" mixin="font" text="value: Turn - Mouse \n Move - WASD keys; color: #FAFAFA; width: 5; align: left; anchor: left;" position="-.95 .1 0.01" render-order="menuItem"></a-entity>
+    <a-entity id="startButton" mixin="button" proxy-event="as: hideInstructions" position="0 -.5 0.02"
+      bind-toggle__raycastable="isRoomLoaded && !!isShowInstructions"
+      bind__visible="isRoomLoaded && !!isShowInstructions"
+      slice9="opacity: 0"
+      animation__fadein="property: slice9.opacity; from: 0; to: 1.0; dur: 2000; startEvents: roomLoaded"
+      text="value: Start;"
+      animation__textfadein="property: components.text.material.uniforms.opacity.value; from: 0; to: 1.0; dur: 2000; startEvents: roomLoaded"
+    ></a-entity>
   </a-entity>
 
   <a-entity id="pubgroup" bind__visible="!isShowInstructions">
@@ -38,7 +40,7 @@
       gltf-model="#pub"
       position="0 0 -2" scale=".7 .7 .7"
       cube-env-map="path: assets/pub-env/; extension: jpg;"
-      proxy-event="event: loaded; to: a-scene; as: roomLoaded"
+      proxy-event="event: loaded; to: a-scene, #startButton, #startButtonLabel; as: roomLoaded"
     ></a-entity>
     <a-entity id="register_screen" position=".822 1.314 -2.859"></a-entity>
     <a-entity id='bartender'

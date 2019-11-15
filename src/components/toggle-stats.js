@@ -2,6 +2,16 @@ AFRAME.registerComponent('toggle-stats', {
   init: function () {
     this.onKeyup = this.onKeyup.bind(this);
     this.isShowing = false;
+    if (typeof __THREE_DEVTOOLS__ !== 'undefined') {
+      const sceneEl = document.querySelector('#thescene');
+      sceneEl.addEventListener('render-target-loaded', function() {
+          // sceneEl.renderer is now set.
+          // eslint-disable-next-line no-undef
+          __THREE_DEVTOOLS__.dispatchEvent(new CustomEvent('observe', { detail: sceneEl }));
+          // eslint-disable-next-line no-undef
+          __THREE_DEVTOOLS__.dispatchEvent(new CustomEvent('observe', { detail: sceneEl.renderer }));
+      });
+  }
   },
   
   play: function () {

@@ -15,6 +15,7 @@ module.exports.Component = registerComponent('my-look-controls', {
 
   schema: {
     enabled: {default: true},
+    mouseEnabled: {defualt: true},
     hmdEnabled: {default: true},
     pointerLockEnabled: {default: false},
     reverseMouseDrag: {default: false},
@@ -72,6 +73,13 @@ module.exports.Component = registerComponent('my-look-controls', {
       //turned pointer lock enabled on
       this.removeEventListeners();
       this.addEventListeners();
+      var sceneEl = this.el.sceneEl;
+      var canvasEl = sceneEl && sceneEl.canvas;
+      if (canvasEl.requestPointerLock) {
+        canvasEl.requestPointerLock();
+      } else if (canvasEl.mozRequestPointerLock) {
+        canvasEl.mozRequestPointerLock();
+      }
     }
   },
 
@@ -237,7 +245,7 @@ module.exports.Component = registerComponent('my-look-controls', {
     var yawObject = this.yawObject;
 
     // Not dragging or not enabled.
-    if (!this.data.enabled || (!this.mouseDown && !this.pointerLocked)) { return; }
+    if (!this.data.enabled || !this.data.mouseEnabled || (!this.mouseDown && !this.pointerLocked)) { return; }
 
     // Calculate delta.
     if (this.pointerLocked) {

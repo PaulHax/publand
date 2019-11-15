@@ -1,6 +1,6 @@
 <a-assets timeout="30000">
-    <a-asset-item id="bartender-model" src="assets/bartender.glb"></a-asset-item>
-    <a-asset-item id="pub" src="assets/pub.glb"></a-asset-item>
+    <a-asset-item id="bartender-model" src="assets/bartender.glb" response-type="arraybuffer"></a-asset-item>
+    <a-asset-item id="pub" src="assets/pub.glb" response-type="arraybuffer"></a-asset-item>
     <!-- Array buffer asset to fix FireFox not playing sound on remote server-->
     <a-asset-item id="pub-background" src="assets/pub-background.mp3" response-type="arraybuffer"></a-asset-item>
     <a-asset-item id="what-to-drink" src="assets/what-to-drink.mp3" response-type="arraybuffer"></a-asset-item>
@@ -17,7 +17,6 @@
        id="buttonHoverEffect"
        animation__mouseenter="property: components.slice9.material.color; type: color; from: #030303; to: #333; easing: easeOutCubic; dur: 150; startEvents: mouseenter"
        animation__mouseleave="property: components.slice9.material.color; type: color; from: #333; to: #030303; easing: easeOutCubic; dur: 150; startEvents: mouseleave"></a-mixin>
-     <a-mixin id="buttonText" mixin="font" text="align: center; width: 2.5; zOffset: 0.01; color: #333"></a-mixin>
+     <a-mixin id="buttonText" mixin="font" text="align: center; width: 5; zOffset: 0.01; color: #FAFAFA"></a-mixin>
      <a-mixin id="button" mixin="buttonBackground buttonHoverEffect buttonText" render-order="button" proxy-event="event: click; to: a-scene; captureBubbles: true"></a-mixin>
-
 </a-assets>
