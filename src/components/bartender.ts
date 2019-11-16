@@ -4,7 +4,6 @@ import { ComponentWrapper } from '../aframe-typescript-toolkit';
 
 enum State {
     Holding,
-    Waiting,
     BarWork,
     DayDream,
 }
@@ -19,6 +18,7 @@ export class Bartender extends ComponentWrapper<BartenderSchema> {
     private b3D: THREE.Object3D;
     private watcher: Component;
     private talker: Component;
+    private timeoutID = -1;
 
     private hasSaidHello = false; //todo real state!
 
@@ -40,7 +40,7 @@ export class Bartender extends ComponentWrapper<BartenderSchema> {
 
         document.querySelector('a-scene').addEventListener('loaded', () => {
             setTimeout(() => {
-                this.state = State.DayDream;
+                this.state = State.BarWork;
             }, 2000);
         });
     }
@@ -54,33 +54,29 @@ export class Bartender extends ComponentWrapper<BartenderSchema> {
     think = (function() {
         return function() {
             if (State.BarWork === this.state) {
-                if (!this.checkForHello()) {
-                    this.el.setAttribute('watcher', { lookAtID: '#register_screen', speed: THREE.Math.degToRad(150) });
-                    this.el.setAttribute('animation-mixer-tick', {
-                        clip: 'idle',
-                        timeScale: 1,
-                        crossFadeDuration: 0.4,
-                    });
-                    this.state = State.Holding;
-                    setTimeout(() => {
-                        this.state = State.DayDream;
-                    }, 4000 + 2000 * Math.random());
-                }
+                this.el.setAttribute('watcher', { lookAtID: '#register_screen', speed: THREE.Math.degToRad(150) });
+                this.el.setAttribute('animation-mixer-tick', {
+                    clip: 'idle',
+                    timeScale: 1,
+                    crossFadeDuration: 0.4,
+                });
+                this.state = State.Holding;
+                this.timeoutID = setTimeout(() => {
+                    this.state = State.DayDream;
+                }, 4000 + 5000 * Math.random());
             } else if (State.DayDream === this.state) {
-                if (!this.checkForHello()) {
-                    //keep dreaming
-                    this.el.setAttribute('watcher', { lookAtID: 'null' });
-                    this.el.setAttribute('animation-mixer-tick', {
-                        clip: 'look around',
-                        timeScale: 1,
-                        crossFadeDuration: 0.5,
-                    });
-                    this.state = State.Holding;
-                    setTimeout(() => {
-                        this.state = State.BarWork;
-                    }, 1000 + 1000 * Math.random());
-                }
+                this.el.setAttribute('watcher', { lookAtID: 'null' });
+                this.el.setAttribute('animation-mixer-tick', {
+                    clip: 'look around',
+                    timeScale: 1,
+                    crossFadeDuration: 0.5,
+                });
+                this.state = State.Holding;
+                this.timeoutID = setTimeout(() => {
+                    this.state = State.BarWork;
+                }, 1000 + 1000 * Math.random());
             }
+            this.checkForHello();
         };
     })();
 
@@ -108,7 +104,10 @@ export class Bartender extends ComponentWrapper<BartenderSchema> {
                     crossFadeDuration: 0.4,
                 });
                 this.state = State.Holding;
-                setTimeout(() => {
+                if (this.timeoutID !== -1) {
+                    clearTimeout(this.timeoutID);
+                }
+                this.timeoutID = setTimeout(() => {
                     this.state = State.BarWork;
                 }, 8000);
                 this.hasSaidHello = true;

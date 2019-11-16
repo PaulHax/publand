@@ -6,10 +6,11 @@ import { EyeFix } from './components/eyefix-culling';
 EyeFix;
 import { Bartender } from './components/bartender';
 Bartender;
+import { GpuLoading } from './components/gpu-loading';
+GpuLoading;
 import 'aframe-extras/src/misc/cube-env-map';
 import 'aframe-slice9-component';
 import 'aframe-render-order-component';
-import 'aframe-proxy-event-component';
 
 import { THREE, registerComponent } from 'aframe';
 import './state';

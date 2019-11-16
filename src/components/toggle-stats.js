@@ -11,7 +11,7 @@ AFRAME.registerComponent('toggle-stats', {
           // eslint-disable-next-line no-undef
           __THREE_DEVTOOLS__.dispatchEvent(new CustomEvent('observe', { detail: sceneEl.renderer }));
       });
-  }
+    }
   },
   
   play: function () {
