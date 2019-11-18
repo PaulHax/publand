@@ -109,7 +109,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                     q3.setFromRotationMatrix(this.headBone.matrixWorld); //for speed check
                 }
                 if (this.animationMixer) {
-                    this.animationMixer.tickManual(t, dt);
+                    this.animationMixer.tickManual(t, dt); // Update built in animation
                 }
                 if (this.headBone) {
                     if (this.lookAtTarget) {

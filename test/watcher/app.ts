@@ -1,5 +1,7 @@
 import { Watcher } from '../../src/components/watcher';
 Watcher;
+import { Blinker } from '../../src/components/blinker';
+Blinker;
 import 'aframe-extras/src/misc/cube-env-map';
 import '../../src/components/animation-mixer-tick';
 
@@ -31,4 +33,4 @@ function toggle() {
     setTimeout(toggle, 3000);
 }
 
-setTimeout(toggle, 1000);
+// setTimeout(toggle, 1000);

@@ -4,6 +4,8 @@ import { Talker } from './components/talker';
 Talker;
 import { EyeFix } from './components/eyefix-culling';
 EyeFix;
+import { Blinker } from './components/blinker';
+Blinker;
 import { Bartender } from './components/bartender';
 Bartender;
 import { GpuLoading } from './components/gpu-loading';
