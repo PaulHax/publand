@@ -77,7 +77,6 @@ export class Blinker extends ComponentWrapper<BlinkerSchema> {
                 {
                     targets: this,
                     currentBlink: 0,
-                    direction: 'normal',
                     duration: Blinker.UP_TIME,
                 },
                 '+=' + (Blinker.DOWN_TIME + Blinker.HOLD_TIME),
@@ -106,7 +105,7 @@ export class Blinker extends ComponentWrapper<BlinkerSchema> {
     tick(t, dt) {
         if (this.nextBlinkTime < t) {
             this.blinkAnimation.restart();
-            this.nextBlinkTime = t + Math.random() * Blinker.SPACING + Blinker.BLINK_TIME; // + Blinker.BLINK_TIME to avoid jump
+            this.nextBlinkTime = t + Math.random() * Blinker.SPACING + Blinker.BLINK_TIME; // + Blinker.BLINK_TIME to avoid in blink jump
             //this.nextBlinkTime = t + 2000;
         }
         if (this.mesh && this.currentBlink) {

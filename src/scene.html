@@ -8,12 +8,25 @@
   <require path="templates/assets.html"></require>
 
   <!-- Todo why camera entity needs rotation compoent to avoid error (when assest time out?)
+    bind__movement-controls="constrainToNavMesh: false; enabled: !isShowInstructions"
  -->
 
-  <a-entity id='user_head' camera="fov: 50"
+  <!-- <a-entity id='user_head' camera="fov: 50"
     bind__my-look-controls="pointerLockEnabled: !isShowInstructions; mouseEnabled: !isShowInstructions" 
     bind__wasd-controls="enabled: !isShowInstructions"
     position="0 1.6 2" rotation="0 0 0">
+  </a-entity> -->
+
+  <a-entity id="rig" 
+    position="0 0 2"    
+    movement-controls="speed: .075; constrainToNavMesh: true"
+    bind__movement-controls="enabled: !isShowInstructions">    
+    <a-entity id='user_head' 
+      camera="fov: 50"
+      position="0 1.6 0"
+      rotation="0 0 0"
+      bind__my-look-controls="pointerLockEnabled: !isShowInstructions; mouseEnabled: !isShowInstructions; touchEnabled: !isShowInstructions">
+    </a-entity>
   </a-entity>
     
   <a-entity light="type: ambient; color: #FFF; intensity: .1;"></a-entity>
@@ -51,6 +64,7 @@
       proxy-event="event: object3dset; to: a-scene, #startButton, #startButtonLabel, #loadingText; as: roomLoaded"
       disable-matrixupdate
     ></a-entity>
+    <a-entity gltf-model="#navmesh" nav-mesh visible="false"></a-entity>      
     <a-entity id="register_screen" position=".822 1.0 0.859"></a-entity>
 
     <a-entity id='bartender'

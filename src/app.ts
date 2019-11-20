@@ -11,6 +11,13 @@ Bartender;
 import { GpuLoading } from './components/gpu-loading';
 GpuLoading;
 import 'aframe-extras/src/misc/cube-env-map';
+import 'aframe-extras/src/controls/movement-controls';
+import 'aframe-extras/src/controls/keyboard-controls';
+import 'aframe-extras/src/controls/touch-controls';
+import 'aframe-extras/src/controls/gamepad-controls';
+import 'aframe-extras/src/controls/trackpad-controls';
+import 'aframe-extras/src/pathfinding';
+
 import 'aframe-slice9-component';
 import 'aframe-render-order-component';
 
@@ -37,7 +44,7 @@ function logKey(e) {
     }
 }
 
-window.addEventListener('keydown', logKey);
+// window.addEventListener('keydown', logKey);
 
 // After user does something, can init AudioContext for background sound.
 function initSound() {
