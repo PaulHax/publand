@@ -12,8 +12,9 @@ interface BlinkerSchema {
     readonly morphFactor: number;
 }
 
-//todo https://www.bloopanimation.com/blinking-animation/
-//TODO blink on head turn and start talking
+// https://www.bloopanimation.com/blinking-animation/
+// Todo blink on head turn and start talking
+// Todo eyes always shut on the g6 phone.  Animation timing with low framerate
 
 export class Blinker extends ComponentWrapper<BlinkerSchema> {
     private mesh: THREE.Mesh;
@@ -21,12 +22,12 @@ export class Blinker extends ComponentWrapper<BlinkerSchema> {
     private rightBlinkMorphIndex: number;
     private morphInfluences: number[];
     private currentBlink = 0;
-    private nextBlinkTime = 5000;
+    private nextBlinkTime = 4000;
 
-    private static SPACING = 6000; // random range between blinks
-    private static DOWN_TIME = 60; //60
-    private static HOLD_TIME = 30; //30
-    private static UP_TIME = 90; //90
+    private static SPACING = 8000; // random range between blinks
+    private static DOWN_TIME = 48; //48
+    private static HOLD_TIME = 24; //24
+    private static UP_TIME = 72; //72
     private static BLINK_TIME = Blinker.DOWN_TIME + Blinker.HOLD_TIME + Blinker.UP_TIME;
 
     private blinkAnimation = ANIME.timeline({
@@ -105,7 +106,7 @@ export class Blinker extends ComponentWrapper<BlinkerSchema> {
     tick(t, dt) {
         if (this.nextBlinkTime < t) {
             this.blinkAnimation.restart();
-            this.nextBlinkTime = t + Math.random() * Blinker.SPACING + Blinker.BLINK_TIME; // + Blinker.BLINK_TIME to avoid in blink jump
+            this.nextBlinkTime = t + Math.random() * Blinker.SPACING + Blinker.BLINK_TIME; // + Blinker.BLINK_TIME to avoid blinking while blinking
             //this.nextBlinkTime = t + 2000;
         }
         if (this.mesh && this.currentBlink) {

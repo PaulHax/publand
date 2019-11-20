@@ -6,6 +6,7 @@ interface TalkerSchema {
     readonly meshJawMorph: string;
     readonly jawMorph: string;
     readonly jawFactor: number;
+    readonly sound: string;
 }
 
 type TalkingEntity = Entity<{
@@ -45,6 +46,10 @@ export class Talker extends ComponentWrapper<TalkerSchema> {
             jawFactor: {
                 type: 'number',
                 default: 1,
+            },
+            sound: {
+                type: 'string',
+                default: '',
             },
         });
     }
@@ -89,6 +94,13 @@ export class Talker extends ComponentWrapper<TalkerSchema> {
         this.myEntity.removeEventListener('sound-ended', this.endSound);
     }
 
+    update(oldData) {
+        const data = this.data;
+        if (data.sound !== '' && oldData.sound !== data.sound) {
+            this.speak(data.sound);
+        }
+    }
+
     load(model: THREE.Object3D) {
         this.meshWithMorph = model.getObjectByName(this.data.meshJawMorph) as THREE.Mesh;
         if (this.meshWithMorph) {
@@ -108,10 +120,15 @@ export class Talker extends ComponentWrapper<TalkerSchema> {
         if (this.currentSound) {
             this.currentSound.stopSound();
         }
-        this.currentSound = el.components['sound__' + soundComponent];
-        this.currentSound.playSound(audioThree => {
-            audioThree.getOutput().connect(this.inputNode);
-        });
+        const newSound = 'sound__' + soundComponent;
+        if (newSound in el.components) {
+            this.currentSound = el.components['sound__' + soundComponent];
+            this.currentSound.playSound(audioThree => {
+                audioThree.getOutput().connect(this.inputNode);
+            });
+        } else {
+            console.log('Error: Could not find sound on entitiy: ' + newSound);
+        }
     }
 
     endSound(e) {
@@ -133,7 +150,7 @@ export class Talker extends ComponentWrapper<TalkerSchema> {
             let currentV = Math.min((sum / size) * this.data.jawFactor, 1);
             const diff = Math.abs(lastV - currentV);
             if (diff <= Talker.JITTER_RADIUS) {
-                const filterAmount = diff / Talker.JITTER_RADIUS;
+                const filterAmount = diff / Talker.JITTER_RADIUS; // bigger diff, less filtering
                 currentV = currentV * filterAmount + lastV * (1 - filterAmount);
             }
             this.morphInfluences[this.jawMorphIndex] = currentV;

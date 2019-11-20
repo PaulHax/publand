@@ -6,7 +6,7 @@ import { ANIME } from 'aframe';
 import { ComponentWrapper } from '../aframe-typescript-toolkit';
 
 interface WatcherSchema {
-    readonly lookAtID: string; // Todo make selector?
+    readonly lookAtID: string; // Todo make selector
     readonly headBone: string;
     readonly speed: number;
 }
@@ -19,7 +19,6 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
     private lookAtTarget: THREE.Object3D;
     private mixerWeight = 1;
     private animationMixer: Component;
-    private static readonly ROTATE_SPEED_EASED_BOOST = THREE.Math.degToRad(350); // Degrees per second
     private static readonly ROTATE_SPEED_BASE = THREE.Math.degToRad(30); // Degrees per second
     private static readonly ROTATE_EASING = 1.1; // Higher is more easing in
     private static readonly HEAD_YAW_MAX = 40; // Degrees
@@ -36,7 +35,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
             },
             speed: {
                 type: 'number',
-                default: Watcher.ROTATE_SPEED_EASED_BOOST,
+                default: THREE.Math.degToRad(350),
             },
         });
     }
