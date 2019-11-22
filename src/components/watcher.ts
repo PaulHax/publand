@@ -20,8 +20,9 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
     private mixerWeight = 1;
     private animationMixer: Component;
     private static readonly ROTATE_SPEED_BASE = THREE.Math.degToRad(30); // Degrees per second
-    private static readonly ROTATE_EASING = 1.1; // Higher is more easing in
+    private static readonly ROTATE_EASING = 1.01; // Higher is more easing in
     private static readonly HEAD_YAW_MAX = 40; // Degrees
+    private static readonly HEAD_TILT_MAX = 40; // Degrees
 
     constructor() {
         super({
@@ -35,7 +36,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
             },
             speed: {
                 type: 'number',
-                default: THREE.Math.degToRad(350),
+                default: THREE.Math.degToRad(300),
             },
         });
     }
@@ -55,7 +56,9 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
     load(model: THREE.Object3D) {
         this.model = model;
         this.headBone = this.model.getObjectByName(this.data.headBone) as THREE.Bone;
-        this.animationMixer = this.el.components['animation-mixer-tick'];
+        if ('animation-mixer-tick' in this.el.components) {
+            this.animationMixer = this.el.components['animation-mixer-tick'];
+        }
     }
 
     update(oldData) {
@@ -97,23 +100,29 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
         const m1 = new THREE.Matrix4();
         const lookAtPos = new THREE.Vector3();
         const v1 = new THREE.Vector3();
-        const MAX_MAGNITUDE = Math.sin(0.5 * THREE.Math.degToRad(Watcher.HEAD_YAW_MAX));
-        const MAX_MAGNITUDE_W = Math.sqrt(1.0 - MAX_MAGNITUDE * MAX_MAGNITUDE);
+        const MAX_MAGNITUDE = Math.sin(0.5 * THREE.Math.DEG2RAD * Watcher.HEAD_YAW_MAX);
         const MAX_MAG_POW_2 = MAX_MAGNITUDE * MAX_MAGNITUDE;
+        const MAX_MAGNITUDE_W = Math.sqrt(1.0 - MAX_MAG_POW_2);
+
+        const SWING_MAX = Math.sin(0.5 * THREE.Math.DEG2RAD * Watcher.HEAD_TILT_MAX);
+        const SWING_MAX_POW2 = SWING_MAX * SWING_MAX;
+        const SWING_MAX_W = Math.sqrt(1.0 - SWING_MAX_POW2);
 
         return function(t, dt) {
             if (this.model) {
                 if (this.headBone) {
-                    q2.copy(this.headBone.quaternion); //save it before animation overwrites
-                    q3.setFromRotationMatrix(this.headBone.matrixWorld); //for speed check
+                    //q2.copy(this.headBone.quaternion); //save local quat before animation overwrites
+                    m1.extractRotation(this.headBone.matrixWorld);
+                    q3.setFromRotationMatrix(m1); //old rotation world
+                    //q3.setFromRotationMatrix(this.headBone.matrixWorld); //for speed check
                 }
                 if (this.animationMixer) {
                     this.animationMixer.tickManual(t, dt); // Update built in animation
                 }
                 if (this.headBone) {
                     if (this.lookAtTarget) {
-                        // Rotate body
-                        //this.model.updateMatrixWorld();
+                        // Rotate body.  Assumes model is in world space
+                        //this.model.updateWorldMatrix(true, false); //Want this if moving along Y axis
                         const modelY = this.model.matrixWorld.elements[13]; //get y
                         lookAtPos.setFromMatrixPosition(this.lookAtTarget.matrixWorld);
                         const saveForHead = lookAtPos.y;
@@ -121,42 +130,23 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                         q1.copy(this.model.quaternion); //save for speed check
                         this.model.lookAt(lookAtPos);
 
-                        //cap speed
-                        let angleDiff = q1.angleTo(this.model.quaternion);
-                        let n = angleDiff / Math.PI; //normalized angle change
-                        let increasedSpeed = Math.pow(n, Watcher.ROTATE_EASING) * this.data.speed; //easing https://gist.github.com/gre/1650294
-                        let speed = Watcher.ROTATE_SPEED_BASE + increasedSpeed;
-                        let maxAngleChange = speed * (dt / 1000);
-                        if (angleDiff > maxAngleChange) {
-                            q1.rotateTowards(this.model.quaternion, maxAngleChange);
-                            this.model.quaternion.copy(q1);
-                        }
+                        this.rotateTowards(this.model.quaternion, q1, this.data.speed, dt);
 
                         // Rotate head
-                        lookAtPos.y = saveForHead;
-                        this.headBone.updateWorldMatrix(true, false); // Keep neck from overshooting cuz it's 1 frame behind
+                        this.headBone.updateWorldMatrix(true, false); // Keeps neck from overshooting cuz it's 1 frame behind just moved main model
                         m1.copy(this.headBone.matrixWorld);
                         m1.premultiply(this.eyeOffset);
                         v1.setFromMatrixPosition(m1); // v1 = eyePos in world space
+                        lookAtPos.y = saveForHead;
                         m1.lookAt(lookAtPos, v1, this.headBone.up);
                         this.headBone.quaternion.setFromRotationMatrix(m1); //target rotation in world
+
+                        this.rotateTowards(this.headBone.quaternion, q3, this.data.speed * 2, dt);
 
                         //world to parent space
                         m1.extractRotation(this.headBone.parent.matrixWorld);
                         q1.setFromRotationMatrix(m1);
                         this.headBone.quaternion.premultiply(q1.inverse());
-
-                        //calculate speed
-                        q2; //account for new parent orientation
-                        angleDiff = q3.angleTo(this.headBone.quaternion);
-                        n = angleDiff / Math.PI; //normalized angle change
-                        increasedSpeed = Math.pow(n, Watcher.ROTATE_EASING) * this.data.speed; //easing https://gist.github.com/gre/1650294
-                        speed = Watcher.ROTATE_SPEED_BASE + increasedSpeed;
-                        maxAngleChange = speed * (dt / 1000);
-                        if (angleDiff > maxAngleChange) {
-                            q2.rotateTowards(this.headBone.quaternion, maxAngleChange);
-                            this.headBone.quaternion.copy(q2);
-                        }
 
                         //clamp neck rotation with swing + twist parameterization
                         // https://stackoverflow.com/questions/3684269/component-of-a-quaternion-rotation-around-an-axis/4341489
@@ -164,26 +154,54 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                         // http://www.allenchou.net/2018/05/game-math-swing-twist-interpolation-sterp/
                         // https://stackoverflow.com/questions/42428136/quaternion-is-flipping-sign-for-very-similar-rotations
                         const qT = this.headBone.quaternion;
-                        // v1.set(qT.x, qT.y, qT.z); //todo check singularity: rotation by 180 degree if (r.sqrMagnitude < MathUtil.Epsilon)
+                        v1.set(qT.x, qT.y, qT.z); //todo check singularity: rotation by 180 degree if (r.sqrMagnitude < MathUtil.Epsilon)
                         // v1.projectOnVector(this.headBone.up); //up is direction around twist
-                        v1.set(0, qT.y, 0); //project on y axis
-                        q1.set(v1.x, v1.y, v1.z, qT.w); //twist
+                        //v1.set(0, qT.y, 0); //project on y axis
+                        //q1.set(v1.x, v1.y, v1.z, qT.w); //twist
+                        q1.set(0, qT.y, 0, qT.w); //twist: project on y then get twist
                         q1.normalize();
+
                         q3.copy(q1).conjugate();
                         q2.multiplyQuaternions(qT, q3); //swing
-                        q2.normalize();
+
+                        // Cap swing and twist angles
                         v1.set(q1.x, q1.y, q1.z);
                         if (v1.lengthSq() > MAX_MAG_POW_2) {
                             v1.setLength(MAX_MAGNITUDE);
                             const sign = qT.w < 0 ? -1 : 1;
                             q1.set(v1.x, v1.y, v1.z, sign * MAX_MAGNITUDE_W);
-                            qT.multiplyQuaternions(q2, q1); //swing * twist
                         }
+
+                        q2.normalize();
+                        v1.set(q2.x, q2.y, q2.z);
+                        if (v1.lengthSq() > SWING_MAX_POW2) {
+                            v1.setLength(SWING_MAX);
+                            q2.set(v1.x, v1.y, v1.z, SWING_MAX_W); //todo don't know why perserving sign here causes jumps. cancels out twist cap?
+                        }
+
+                        qT.multiplyQuaternions(q2, q1); //swing * twist
                     } else if (this.mixerWeight < 1) {
                         // no lookat target
                         this.headBone.quaternion.slerp(this.lastQ, 1 - this.mixerWeight);
                     }
                 }
+            }
+        };
+    })();
+
+    //Side effects: manipulates parameters
+    rotateTowards = (function() {
+        return function(targetQuat, lastQuat, speedFactor, dt) {
+            //cap speed
+            const angleDiff = targetQuat.angleTo(lastQuat); //q1.angleTo(this.model.quaternion); // targetAngle - lastAngle
+            const n = angleDiff / Math.PI; //normalized angle change
+            const increasedSpeed = Math.pow(n, Watcher.ROTATE_EASING) * speedFactor; //easing https://gist.github.com/gre/1650294
+            const speed = Watcher.ROTATE_SPEED_BASE + increasedSpeed;
+            const maxAngleChange = speed * (dt / 1000);
+
+            if (angleDiff > maxAngleChange) {
+                lastQuat.rotateTowards(targetQuat, maxAngleChange);
+                targetQuat.copy(lastQuat);
             }
         };
     })();

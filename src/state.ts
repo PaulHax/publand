@@ -13,11 +13,11 @@ AFRAME.registerState({
         isShowInstructions: !SKIP_INTRO,
         isRoomLoaded: false,
         bartender: {
-            hasSaidHello: false,
             animationClip: 'idle',
             lookAtID: 'null',
             speakSound: '',
             lookSpeed: AFRAME.THREE.Math.degToRad(150),
+            hasSaidHello: false,
             timeoutID: -1,
         },
     },

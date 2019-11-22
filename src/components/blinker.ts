@@ -103,13 +103,13 @@ export class Blinker extends ComponentWrapper<BlinkerSchema> {
         }
     }
 
-    tick(t, dt) {
+    tick(t) {
         if (this.nextBlinkTime < t) {
             this.blinkAnimation.restart();
             this.nextBlinkTime = t + Math.random() * Blinker.SPACING + Blinker.BLINK_TIME; // + Blinker.BLINK_TIME to avoid blinking while blinking
             //this.nextBlinkTime = t + 2000;
         }
-        if (this.mesh && this.currentBlink) {
+        if (this.currentBlink && this.mesh) {
             this.morphInfluences[this.leftBlinkMorphIndex] = this.currentBlink * this.data.morphFactor;
             this.morphInfluences[this.rightBlinkMorphIndex] = this.currentBlink * this.data.morphFactor;
         }
