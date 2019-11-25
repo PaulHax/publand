@@ -32,7 +32,7 @@ export class EyeFix extends ComponentWrapper<EyeFixSchema> {
     load(model: THREE.Object3D) {
         const eyeG = (model.getObjectByName(this.data.eyeName) as THREE.Mesh).geometry as THREE.Geometry;
         eyeG.computeBoundingSphere();
-        eyeG.boundingSphere.radius *= 2; //just double it hack
+        eyeG.boundingSphere.radius *= 4; //just factor it up it hack.  Todo Move to right spot on character?
     }
 }
 

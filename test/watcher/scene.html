@@ -1,9 +1,10 @@
 <a-scene stats environment="preset: default; seed: 123;" shadow="enabled: false">
   
-  <a-entity id="user_head" camera="active: true" look-controls wasd-controls position="0 1.6 -3"></a-entity>
+  <a-entity id="user_head" camera="active: true" look-controls wasd-controls position="0 2 -3"></a-entity>
   
   <a-entity id='bartender' position="0 0 -3.6"
     gltf-model="url(./assets/bartender.glb)"
+    eyefix
     watcher="lookAtID: null; headBone: mixamorigHead;"
     animation-mixer-tick="clip: idle; crossFadeDuration: .3;"
     cube-env-map="path: assets/pub-env/; extension: jpg;"

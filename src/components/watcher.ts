@@ -4,6 +4,7 @@ import { Entity, THREE, Component } from 'aframe';
 import { ANIME } from 'aframe';
 
 import { ComponentWrapper } from '../aframe-typescript-toolkit';
+import { PointLightHelper } from 'three';
 
 interface WatcherSchema {
     readonly lookAtID: string; // Todo make selector
@@ -19,7 +20,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
     private lookAtTarget: THREE.Object3D;
     private mixerWeight = 1;
     private animationMixer: Component;
-    private static readonly ROTATE_SPEED_BASE = THREE.Math.degToRad(30); // Degrees per second
+    private static readonly ROTATE_SPEED_BASE = THREE.Math.degToRad(40); // Degrees per second
     private static readonly ROTATE_EASING = 1.01; // Higher is more easing in
     private static readonly HEAD_YAW_MAX = 40; // Degrees
     private static readonly HEAD_TILT_MAX = 40; // Degrees
@@ -36,7 +37,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
             },
             speed: {
                 type: 'number',
-                default: THREE.Math.degToRad(300),
+                default: THREE.Math.degToRad(300), //300
             },
         });
     }
@@ -93,6 +94,18 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
         }
     }
 
+    ticksilly = (function() {
+        const lookAtPos = new THREE.Vector3();
+
+        return function(t, dt) {
+            if (this.headBone && this.lookAtTarget) {
+                const lookAtPos = new THREE.Vector3();
+                lookAtPos.setFromMatrixPosition(this.lookAtTarget.matrixWorld);
+                this.pointBone(this.headBone, lookAtPos, this.headBone, dt);
+            }
+        };
+    })();
+
     tick = (function() {
         const q1 = new THREE.Quaternion();
         const q2 = new THREE.Quaternion();
@@ -111,10 +124,9 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
         return function(t, dt) {
             if (this.model) {
                 if (this.headBone) {
-                    //q2.copy(this.headBone.quaternion); //save local quat before animation overwrites
-                    m1.extractRotation(this.headBone.matrixWorld);
-                    q3.setFromRotationMatrix(m1); //old rotation world
-                    //q3.setFromRotationMatrix(this.headBone.matrixWorld); //for speed check
+                    q2.copy(this.headBone.quaternion); //save local quat before animation overwrites
+                    m1.extractRotation(this.headBone.matrixWorld); //todo is safe?: q3.setFromRotationMatrix(this.headBone.matrixWorld);
+                    q3.setFromRotationMatrix(m1); //old head rotation world
                 }
                 if (this.animationMixer) {
                     this.animationMixer.tickManual(t, dt); // Update built in animation
@@ -130,7 +142,9 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                         q1.copy(this.model.quaternion); //save for speed check
                         this.model.lookAt(lookAtPos);
 
-                        this.rotateTowards(this.model.quaternion, q1, this.data.speed, dt);
+                        const angleDiff = this.model.quaternion.angleTo(q1);
+                        //console.log('body', angleDiff);
+                        this.rotateTowards(this.model.quaternion, q1, angleDiff, dt);
 
                         // Rotate head
                         this.headBone.updateWorldMatrix(true, false); // Keeps neck from overshooting cuz it's 1 frame behind just moved main model
@@ -141,12 +155,14 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                         m1.lookAt(lookAtPos, v1, this.headBone.up);
                         this.headBone.quaternion.setFromRotationMatrix(m1); //target rotation in world
 
-                        this.rotateTowards(this.headBone.quaternion, q3, this.data.speed * 2, dt);
-
+                        //calculate ease amount in world
+                        const headAngleDiff = Math.max(this.headBone.quaternion.angleTo(q3) * 1.2, angleDiff * 1.2); //todo haxk with multiplier
                         //world to parent space
                         m1.extractRotation(this.headBone.parent.matrixWorld);
                         q1.setFromRotationMatrix(m1);
                         this.headBone.quaternion.premultiply(q1.inverse());
+                        //cap speed in local
+                        this.rotateTowards(this.headBone.quaternion, q2, headAngleDiff, dt); //q3 is old world rotation
 
                         //clamp neck rotation with swing + twist parameterization
                         // https://stackoverflow.com/questions/3684269/component-of-a-quaternion-rotation-around-an-axis/4341489
@@ -176,7 +192,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                         v1.set(q2.x, q2.y, q2.z);
                         if (v1.lengthSq() > SWING_MAX_POW2) {
                             v1.setLength(SWING_MAX);
-                            q2.set(v1.x, v1.y, v1.z, SWING_MAX_W); //todo don't know why perserving sign here causes jumps. cancels out twist cap?
+                            q2.set(v1.x, v1.y, v1.z, SWING_MAX_W); //todo don't know why perserving sign here causes jumps. cancels out twist ceiling?
                         }
 
                         qT.multiplyQuaternions(q2, q1); //swing * twist
@@ -191,18 +207,39 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
 
     //Side effects: manipulates parameters
     rotateTowards = (function() {
-        return function(targetQuat, lastQuat, speedFactor, dt) {
+        return function(targetQuat, lastQuat, angleDiff, dt) {
             //cap speed
-            const angleDiff = targetQuat.angleTo(lastQuat); //q1.angleTo(this.model.quaternion); // targetAngle - lastAngle
-            const n = angleDiff / Math.PI; //normalized angle change
-            const increasedSpeed = Math.pow(n, Watcher.ROTATE_EASING) * speedFactor; //easing https://gist.github.com/gre/1650294
+            //const angleDiff = targetQuat.angleTo(lastQuat); //q1.angleTo(this.model.quaternion); // targetAngle - lastAngle
+            const n = angleDiff / Math.PI; //normalize angle change: 0 to 1
+            // decelerating to zero velocity
+            const increasedSpeed = n * (2 - n) * this.data.speed; //easing from https://gist.github.com/gre/1650294
             const speed = Watcher.ROTATE_SPEED_BASE + increasedSpeed;
             const maxAngleChange = speed * (dt / 1000);
 
+            //console.log(n, speed);
             if (angleDiff > maxAngleChange) {
                 lastQuat.rotateTowards(targetQuat, maxAngleChange);
                 targetQuat.copy(lastQuat);
             }
+        };
+    })();
+
+    pointBone = (function() {
+        const m1 = new THREE.Matrix4();
+        const v1 = new THREE.Vector3();
+        const q1 = new THREE.Quaternion();
+
+        return function(bone, targetPos, effector, dt) {
+            //how far does effector have to go to target
+            effector.updateWorldMatrix(true, false);
+            m1.copy(effector.matrixWorld);
+            v1.setFromMatrixPosition(m1); // v1 = eyePos in world space
+            m1.lookAt(targetPos, v1, effector.up);
+            const angleDiff = this.model.quaternion.angleTo(q1);
+            //forward then backward passes?
+
+            //move bone twoards target
+            //maybe no more needed, else go to parent and move it.
         };
     })();
 }

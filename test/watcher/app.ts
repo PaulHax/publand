@@ -3,6 +3,7 @@ Watcher;
 import { Blinker } from '../../src/components/blinker';
 Blinker;
 import 'aframe-extras/src/misc/cube-env-map';
+import '../../src/components/eyefix-culling';
 import '../../src/components/animation-mixer-tick';
 
 require('./scene.html');

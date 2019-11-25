@@ -10,6 +10,8 @@ import { Bartender } from './components/bartender';
 Bartender;
 import { GpuLoading } from './components/gpu-loading';
 GpuLoading;
+import { PubLighting } from './components/pub-lighting';
+PubLighting;
 import 'aframe-extras/src/misc/cube-env-map';
 import 'aframe-extras/src/controls/movement-controls';
 import 'aframe-extras/src/controls/keyboard-controls';

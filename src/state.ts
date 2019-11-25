@@ -2,7 +2,7 @@ import 'aframe-state-component';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
-const SKIP_INTRO = AFRAME.utils.getUrlParameter('skipintro') === 'true';
+const SKIP_INTRO = AFRAME.utils.getUrlParameter('skip') === 'true';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
