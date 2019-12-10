@@ -180,7 +180,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                         q3.copy(q1).conjugate();
                         q2.multiplyQuaternions(qT, q3); //swing
 
-                        // Cap swing and twist angles
+                        // Clamp twist angle
                         v1.set(q1.x, q1.y, q1.z);
                         if (v1.lengthSq() > MAX_MAG_POW_2) {
                             v1.setLength(MAX_MAGNITUDE);
@@ -188,11 +188,12 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                             q1.set(v1.x, v1.y, v1.z, sign * MAX_MAGNITUDE_W);
                         }
 
+                        // Clamp swing angle
                         q2.normalize();
                         v1.set(q2.x, q2.y, q2.z);
                         if (v1.lengthSq() > SWING_MAX_POW2) {
                             v1.setLength(SWING_MAX);
-                            q2.set(v1.x, v1.y, v1.z, SWING_MAX_W); //todo don't know why perserving sign here causes jumps. cancels out twist ceiling?
+                            q2.set(v1.x, v1.y, v1.z, SWING_MAX_W); //todo don't know why perserving sign here causes jumps. cancels out twist clamp?
                         }
 
                         qT.multiplyQuaternions(q2, q1); //swing * twist

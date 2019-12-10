@@ -22,16 +22,16 @@
     movement-controls="speed: .075; constrainToNavMesh: true"
     bind__movement-controls="enabled: !isShowInstructions">    
     <a-entity id='user_head' 
-      camera="fov: 50"
+      camera="fov: 50; near: .05"
       position="0 1.6 0"
       rotation="0 0 0"
       bind__my-look-controls="pointerLockEnabled: !isShowInstructions; mouseEnabled: !isShowInstructions; touchEnabled: !isShowInstructions">
     </a-entity>
   </a-entity>
     
-  <a-entity light="type: ambient; color: #FFF; intensity: .1;"></a-entity>
+  <a-entity light="type: ambient; color: #FFF; intensity: .2;"></a-entity>
   <!-- <a-entity light="type: directional; color: #FFF; intensity: 1.7" position="0.1 1 1"></a-entity> -->
-  <a-entity light="type: point; color: #FFF; intensity: 1.1" position="3 3 2"></a-entity>
+  <a-entity light="type: point; color: #FFF; intensity: 1.1" position="-3 3 -.2"></a-entity>
   
   <a-entity sound="src: #pub-background; positional: false; autoplay: true; loop: true; volume: 1"></a-entity>
 

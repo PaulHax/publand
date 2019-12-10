@@ -39,17 +39,17 @@ require('./index.css');
 require('./start.html'); // inject into index.html with hot reloading
 require('./scene.html'); // inject into index.html with hot reloading
 
-function logKey(e) {
-    const bman = document.querySelector('#bartender');
-    if (e.code === 'Space') {
-        bman.components.talker.speak('whatdrink');
-    }
-}
-
+// function logKey(e) {
+//     const bman = document.querySelector('#bartender');
+//     if (e.code === 'Space') {
+//         bman.components.talker.speak('whatdrink');
+//     }
+// }
 // window.addEventListener('keydown', logKey);
 
 // After user does something, can init AudioContext for background sound.
 function initSound() {
+    //aframe sound componet looks for context on scene object
     const scene = (document.querySelector('#thescene') as unknown) as THREE.Scene & {
         audioListener: THREE.AudioListener;
     };

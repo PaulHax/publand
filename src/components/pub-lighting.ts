@@ -69,21 +69,60 @@ export class PubLighting extends ComponentWrapper<PubLightingSchema> {
         });
         mesh.material = newMat;
 
-        // model.getObjectByName('Plane003').children.forEach(childObj => {
-        //     mesh = childObj as THREE.Mesh;
-        //     console.log(mesh);
-        //     oldMat = mesh.material as THREE.MeshStandardMaterial;
-        //     lightMapy = new THREE.TextureLoader().load('assets/barback_bake.jpg');
-        //     lightMapy.flipY = false;
-        //     newMat = new THREE.MeshBasicMaterial({
-        //         map: oldMat.map,
-        //         // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-        //         // @ts-ignore
-        //         lightMap: lightMapy,
-        //         lightMapIntensity: 1,
-        //     });
-        //     mesh.material = newMat;
+        mesh = model.getObjectByName('barshelves') as THREE.Mesh;
+        oldMat = mesh.material as THREE.MeshStandardMaterial;
+        lightMapy = new THREE.TextureLoader().load('assets/shelves_lighting.jpg');
+        lightMapy.flipY = false;
+        newMat = new THREE.MeshBasicMaterial({
+            map: oldMat.map,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            lightMap: lightMapy,
+            lightMapIntensity: 1,
+        });
+        mesh.material = newMat;
+
+        mesh = model.getObjectByName('roof') as THREE.Mesh;
+        oldMat = mesh.material as THREE.MeshStandardMaterial;
+        lightMapy = new THREE.TextureLoader().load('assets/roof_light.jpg');
+        lightMapy.flipY = false;
+        newMat = new THREE.MeshBasicMaterial({
+            map: oldMat.map,
+            // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+            // @ts-ignore
+            lightMap: lightMapy,
+            lightMapIntensity: 1,
+        });
+        mesh.material = newMat;
+
+        // mesh = model.getObjectByName('bar') as THREE.Mesh;
+        // console.log(mesh);
+        // oldMat = mesh.material as THREE.MeshStandardMaterial;
+        // lightMapy = new THREE.TextureLoader().load('assets/bar_light.jpg');
+        // lightMapy.flipY = false;
+        // newMat = new THREE.MeshBasicMaterial({
+        //     map: oldMat.map,
+        //     // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+        //     // @ts-ignore
+        //     lightMap: lightMapy,
+        //     lightMapIntensity: 1,
         // });
+        // mesh.material = newMat;
+
+        model.getObjectByName('bar').children.forEach(childObj => {
+            mesh = childObj as THREE.Mesh;
+            oldMat = mesh.material as THREE.MeshStandardMaterial;
+            lightMapy = new THREE.TextureLoader().load('assets/bar_light.jpg');
+            lightMapy.flipY = false;
+            newMat = new THREE.MeshBasicMaterial({
+                map: oldMat.map,
+                // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                // @ts-ignore
+                lightMap: lightMapy,
+                lightMapIntensity: 1,
+            });
+            mesh.material = newMat;
+        });
     }
 }
 
