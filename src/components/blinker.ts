@@ -25,15 +25,17 @@ export class Blinker extends ComponentWrapper<BlinkerSchema> {
     private nextBlinkTime = 4000;
 
     private static SPACING = 8000; // random range between blinks
+    private static INITIAL_HOLD = 100; //48
     private static DOWN_TIME = 48; //48
     private static HOLD_TIME = 24; //24
     private static UP_TIME = 72; //72
-    private static BLINK_TIME = Blinker.DOWN_TIME + Blinker.HOLD_TIME + Blinker.UP_TIME;
+    private static BLINK_TIME = Blinker.INITIAL_HOLD + Blinker.DOWN_TIME + Blinker.HOLD_TIME + Blinker.UP_TIME;
 
     private blinkAnimation = ANIME.timeline({
         targets: this,
-        currentBlink: 1,
+        currentBlink: 0,
         easing: 'easeInOutQuad', //easeInOutQuad  linear
+        autoplay: false,
     });
 
     constructor() {
@@ -69,6 +71,12 @@ export class Blinker extends ComponentWrapper<BlinkerSchema> {
             this.el.addEventListener('model-loaded', onModelLoaded);
         }
         this.blinkAnimation
+            //first target to keep eyes open when swithcing tabs in low framerate
+            .add({
+                targets: this,
+                currentBlink: 0,
+                duration: Blinker.INITIAL_HOLD,
+            })
             .add({
                 targets: this,
                 currentBlink: 1,

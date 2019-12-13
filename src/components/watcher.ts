@@ -4,7 +4,7 @@ import { Entity, THREE, Component } from 'aframe';
 import { ANIME } from 'aframe';
 
 import { ComponentWrapper } from '../aframe-typescript-toolkit';
-import { PointLightHelper } from 'three';
+import { PointLightHelper, Vector2 } from 'three';
 
 interface WatcherSchema {
     readonly lookAtID: string; // Todo make selector
@@ -57,9 +57,21 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
     load(model: THREE.Object3D) {
         this.model = model;
         this.headBone = this.model.getObjectByName(this.data.headBone) as THREE.Bone;
+        // this.hips = this.model.getObjectByName('mixamorigHips') as THREE.Bone;
         if ('animation-mixer-tick' in this.el.components) {
             this.animationMixer = this.el.components['animation-mixer-tick'];
         }
+        // const helper = new THREE.SkeletonHelper(model);
+        // helper.material.linewidth = 3;
+        // this.el.sceneEl.object3D.add(helper);
+        // this.axesHelper = new THREE.AxesHelper(50);
+        // this.el.sceneEl.object3D.add(this.axesHelper);
+        // this.axesHelper.matrixAutoUpdate = false;
+
+        // this.axesHelper1 = new THREE.AxesHelper(3);
+        // this.el.sceneEl.object3D.add(this.axesHelper1);
+        // this.axesHelper2 = new THREE.AxesHelper(6);
+        // this.el.sceneEl.object3D.add(this.axesHelper2);
     }
 
     update(oldData) {
@@ -94,14 +106,184 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
         }
     }
 
-    ticksilly = (function() {
+    ticky = (function() {
         const lookAtPos = new THREE.Vector3();
+        const effectorM = new THREE.Matrix4();
+
+        const m1 = new THREE.Matrix4();
+        const m2 = new THREE.Matrix4();
+
+        const v1 = new THREE.Vector3();
+        const v2 = new THREE.Vector3();
+
+        const q1 = new THREE.Quaternion();
+        const q2 = new THREE.Quaternion();
+        const q3 = new THREE.Quaternion();
 
         return function(t, dt) {
             if (this.headBone && this.lookAtTarget) {
-                const lookAtPos = new THREE.Vector3();
+                //find effector angle to target
+                //Rotate head to it
+                //find effector angle to target
+                //rotate body to it
+                //forward then backward passes?
+
                 lookAtPos.setFromMatrixPosition(this.lookAtTarget.matrixWorld);
-                this.pointBone(this.headBone, lookAtPos, this.headBone, dt);
+
+                this.headBone.updateWorldMatrix(true, false);
+                effectorM.copy(this.headBone.matrixWorld);
+                effectorM.premultiply(this.eyeOffset);
+
+                let bone = this.headBone;
+                //this.pointBone(this.headBone, lookAtPos, effectorM, dt);
+                v1.setFromMatrixPosition(effectorM);
+                v2.setFromMatrixColumn(bone.parent.matrixWorld, 1); //todo blend to world up a little if not over 90 away?
+                m1.lookAt(lookAtPos, v1, v2); //m1 = effector pointing to target
+
+                q1.setFromRotationMatrix(m1); //effector target quat
+                m2.extractRotation(effectorM);
+                q2.setFromRotationMatrix(m2); //effector current quat
+
+                let angleDiff = q2.angleTo(q1); //effector to target angle
+
+                m1.extractRotation(bone.matrixWorld); //extractRotation needed
+                q2.setFromRotationMatrix(m1);
+
+                this.rotateTowards(q1, q2, angleDiff, dt); //wierd to rotate to effector target
+
+                m1.extractRotation(bone.parent.matrixWorld);
+                q3.setFromRotationMatrix(m1);
+                q3.normalize();
+                q1.normalize();
+                q1.premultiply(q3.inverse());
+                bone.quaternion.copy(q1);
+
+                //do body now
+                //find effector angle to target
+                this.headBone.updateWorldMatrix(true, false);
+                effectorM.copy(this.headBone.matrixWorld);
+                effectorM.premultiply(this.eyeOffset);
+
+                bone = this.hips;
+                //this.pointBone(this.headBone, lookAtPos, effectorM, dt);
+                v1.setFromMatrixPosition(effectorM);
+                //v2.setFromMatrixColumn(bone.parent.matrixWorld, 1); //todo blend to world up a little if not over 90 away?
+                v2.set(0, 1, 0);
+                v1.y = lookAtPos.y;
+                m1.lookAt(lookAtPos, v1, v2); //m1 = effector pointing to target
+
+                q1.setFromRotationMatrix(m1); //effector target quat
+                m2.extractRotation(effectorM);
+                q2.setFromRotationMatrix(m2); //effector current quat
+
+                angleDiff = q2.angleTo(q1); //effector to target angle
+
+                if (THREE.Math.RAD2DEG * angleDiff > 50) {
+                    m1.extractRotation(bone.matrixWorld); //extractRotation needed
+                    q2.setFromRotationMatrix(m1);
+
+                    this.rotateTowards(q1, q2, angleDiff, dt); //wierd to rotate to effector target
+
+                    m1.extractRotation(bone.parent.matrixWorld);
+                    q3.setFromRotationMatrix(m1);
+                    q3.normalize();
+                    q1.normalize();
+                    q1.premultiply(q3.inverse());
+                    bone.quaternion.copy(q1);
+
+                    // limit rotation to around up
+                    // let c = this.hips.quaternion.w;
+                    // if (c > 1.0) c = 1.0;
+                    // const c2 = Math.sqrt(1 - c * c);
+                    // this.hips.quaternion.set(c2, 0, 0, c);
+                } else {
+                    console.log(THREE.Math.RAD2DEG * angleDiff);
+                }
+
+                //rotate body to it if over max rotation
+            }
+        };
+    })();
+
+    angleTo = (function() {
+        const v1 = new THREE.Vector3();
+        const m1 = new THREE.Matrix4();
+        const q1 = new THREE.Quaternion();
+        const q2 = new THREE.Quaternion();
+
+        return function(eyeMatrix, targetPos, up) {
+            v1.setFromMatrixPosition(eyeMatrix); // v1 = effector in world space
+            m1.lookAt(targetPos, v1, up); //m1 = effector pointing to target
+            //angle left
+            q1.setFromRotationMatrix(m1);
+            m1.extractRotation(eyeMatrix);
+            q2.setFromRotationMatrix(m1);
+            return q2.angleTo(q1);
+        };
+    })();
+
+    pointBone = (function() {
+        const m1 = new THREE.Matrix4();
+        const m2 = new THREE.Matrix4();
+        const v1 = new THREE.Vector3();
+        const v2 = new THREE.Vector3();
+        const q1 = new THREE.Quaternion();
+        const q2 = new THREE.Quaternion();
+        const q3 = new THREE.Quaternion();
+
+        return function(bone, targetPos, effectorMatrix, dt) {
+            //How far does effector have to go to target
+
+            v1.setFromMatrixPosition(effectorMatrix); // v1 = effector in world space
+            if (bone.parent) {
+                //get up from parent in world
+                v2.setFromMatrixColumn(bone.parent.matrixWorld, 1); //todo blend to world up a little if not over 90 away?
+            } else {
+                v2.set(0, 1, 0);
+            }
+            v2.set(0, 1, 0);
+            //v1: effector pos, v2: up
+            m1.lookAt(targetPos, v1, v2); //m1 = effector pointing to target
+
+            q1.setFromRotationMatrix(m1); //effector target quat
+            m2.extractRotation(effectorMatrix);
+            q2.setFromRotationMatrix(m2); //effector current quat
+
+            const angleDiff = q2.angleTo(q1); //effector to target angle
+
+            m1.extractRotation(bone.matrixWorld); //extractRotation needed
+            q2.setFromRotationMatrix(m1);
+            q2.normalize();
+
+            this.rotateTowards(q1, q2, angleDiff, dt);
+
+            if (bone.parent) {
+                m1.extractRotation(bone.parent.matrixWorld);
+                q3.setFromRotationMatrix(m1);
+                q3.normalize();
+                q1.normalize();
+                q1.premultiply(q3.inverse());
+                bone.quaternion.copy(q1);
+            } else {
+                bone.quaternion.copy(q1);
+            }
+        };
+    })();
+
+    //Side effects: manipulates parameters
+    rotateTowards = (function() {
+        return function(targetQuat, lastQuat, angleDiff, dt) {
+            //cap speed
+            //const angleDiff = targetQuat.angleTo(lastQuat); //q1.angleTo(this.model.quaternion); // targetAngle - lastAngle
+            const n = angleDiff / Math.PI; //normalize angle change: 0 to 1
+            // decelerating to zero velocity
+            const increasedSpeed = n * (2 - n) * this.data.speed; //easing from https://gist.github.com/gre/1650294
+            const speed = Watcher.ROTATE_SPEED_BASE + increasedSpeed;
+            const maxAngleChange = speed * (dt / 1000);
+
+            if (angleDiff > maxAngleChange) {
+                lastQuat.rotateTowards(targetQuat, maxAngleChange);
+                targetQuat.copy(lastQuat);
             }
         };
     })();
@@ -113,6 +295,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
         const m1 = new THREE.Matrix4();
         const lookAtPos = new THREE.Vector3();
         const v1 = new THREE.Vector3();
+        const v2 = new THREE.Vector3();
         const MAX_MAGNITUDE = Math.sin(0.5 * THREE.Math.DEG2RAD * Watcher.HEAD_YAW_MAX);
         const MAX_MAG_POW_2 = MAX_MAGNITUDE * MAX_MAGNITUDE;
         const MAX_MAGNITUDE_W = Math.sqrt(1.0 - MAX_MAG_POW_2);
@@ -134,7 +317,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                 if (this.headBone) {
                     if (this.lookAtTarget) {
                         // Rotate body.  Assumes model is in world space
-                        //this.model.updateWorldMatrix(true, false); //Want this if moving along Y axis
+                        //this.model.updateWorldMatrix(true, false); //Want this if target is moving along Y axis
                         const modelY = this.model.matrixWorld.elements[13]; //get y
                         lookAtPos.setFromMatrixPosition(this.lookAtTarget.matrixWorld);
                         const saveForHead = lookAtPos.y;
@@ -152,7 +335,10 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                         m1.premultiply(this.eyeOffset);
                         v1.setFromMatrixPosition(m1); // v1 = eyePos in world space
                         lookAtPos.y = saveForHead;
-                        m1.lookAt(lookAtPos, v1, this.headBone.up);
+                        //get up from parent in world
+                        v2.setFromMatrixColumn(this.headBone.parent.matrixWorld, 1); //todo blend to world up a little if not over 90 away
+                        m1.lookAt(lookAtPos, v1, v2);
+                        //m1.lookAt(lookAtPos, v1, this.headBone.up);
                         this.headBone.quaternion.setFromRotationMatrix(m1); //target rotation in world
 
                         //calculate ease amount in world
@@ -203,44 +389,6 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                     }
                 }
             }
-        };
-    })();
-
-    //Side effects: manipulates parameters
-    rotateTowards = (function() {
-        return function(targetQuat, lastQuat, angleDiff, dt) {
-            //cap speed
-            //const angleDiff = targetQuat.angleTo(lastQuat); //q1.angleTo(this.model.quaternion); // targetAngle - lastAngle
-            const n = angleDiff / Math.PI; //normalize angle change: 0 to 1
-            // decelerating to zero velocity
-            const increasedSpeed = n * (2 - n) * this.data.speed; //easing from https://gist.github.com/gre/1650294
-            const speed = Watcher.ROTATE_SPEED_BASE + increasedSpeed;
-            const maxAngleChange = speed * (dt / 1000);
-
-            //console.log(n, speed);
-            if (angleDiff > maxAngleChange) {
-                lastQuat.rotateTowards(targetQuat, maxAngleChange);
-                targetQuat.copy(lastQuat);
-            }
-        };
-    })();
-
-    pointBone = (function() {
-        const m1 = new THREE.Matrix4();
-        const v1 = new THREE.Vector3();
-        const q1 = new THREE.Quaternion();
-
-        return function(bone, targetPos, effector, dt) {
-            //how far does effector have to go to target
-            effector.updateWorldMatrix(true, false);
-            m1.copy(effector.matrixWorld);
-            v1.setFromMatrixPosition(m1); // v1 = eyePos in world space
-            m1.lookAt(targetPos, v1, effector.up);
-            const angleDiff = this.model.quaternion.angleTo(q1);
-            //forward then backward passes?
-
-            //move bone twoards target
-            //maybe no more needed, else go to parent and move it.
         };
     })();
 }
