@@ -16,6 +16,9 @@ function logKey(e) {
     if (e.code === 'KeyV') {
         bman.setAttribute('watcher', { lookAtID: '#user_head' });
     }
+    if (e.code === 'KeyB') {
+        bman.setAttribute('watcher', { lookAtID: 'null' });
+    }
 }
 
 window.addEventListener('keydown', logKey);
