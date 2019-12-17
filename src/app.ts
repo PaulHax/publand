@@ -19,6 +19,7 @@ import 'aframe-extras/src/controls/touch-controls';
 import 'aframe-extras/src/controls/gamepad-controls';
 import 'aframe-extras/src/controls/trackpad-controls';
 import 'aframe-extras/src/pathfinding';
+import 'aframe-extras/src/loaders/animation-mixer';
 
 import 'aframe-slice9-component';
 import 'aframe-render-order-component';

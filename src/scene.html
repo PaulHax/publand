@@ -73,14 +73,14 @@
       gltf-model="#bartender-model"
       cube-env-map="path: assets/pub-env/; extension: jpg;"
       eyefix
+      animation-mixer="crossFadeDuration: .4;"
+      bind__animation-mixer="clip: bartender.animationClip"
+      blinker="morphFactor: 2"
       sound__whatdrink="src: #what-to-drink; rolloffFactor: .1;"
       talker="meshJawMorph: Body; jawMorph: MouthOpen; jawFactor: .02;"
       bind__talker="sound: bartender.speakSound"
       watcher="headBone: mixamorigHead;"
       bind__watcher="lookAtID: bartender.lookAtID; speed: bartender.lookSpeed"
-      blinker="morphFactor: 2"
-      animation-mixer-tick="crossFadeDuration: .4;"
-      bind__animation-mixer-tick="clip: bartender.animationClip"
       bind__bartender="checkForProximity: !bartender.hasSaidHello"
     ></a-entity>
   </a-entitiy>

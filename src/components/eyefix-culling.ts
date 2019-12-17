@@ -31,7 +31,6 @@ export class EyeFix extends ComponentWrapper<EyeFixSchema> {
 
     load(model: THREE.Object3D) {
         // console.log(model);
-        //todo "Shoes"
         let eyeG = (model.getObjectByName(this.data.eyeName) as THREE.Mesh).geometry as THREE.Geometry;
         eyeG.computeBoundingSphere();
         eyeG.boundingSphere.radius *= 4; //just factor it up it hack.  Todo Move to right spot on character?
@@ -39,6 +38,9 @@ export class EyeFix extends ComponentWrapper<EyeFixSchema> {
         eyeG.computeBoundingSphere();
         eyeG.boundingSphere.radius *= 4; //just factor it up it hack.  Todo Move to right spot on character?
         eyeG = (model.getObjectByName('Hair') as THREE.Mesh).geometry as THREE.Geometry;
+        eyeG.computeBoundingSphere();
+        eyeG.boundingSphere.radius *= 4; //just factor it up it hack.  Todo Move to right spot on character?
+        eyeG = (model.getObjectByName('Shoes') as THREE.Mesh).geometry as THREE.Geometry;
         eyeG.computeBoundingSphere();
         eyeG.boundingSphere.radius *= 4; //just factor it up it hack.  Todo Move to right spot on character?
     }

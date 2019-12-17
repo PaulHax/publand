@@ -17,13 +17,13 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
     private lastQ = new THREE.Quaternion();
     private lookAtTarget: THREE.Object3D;
     private mixerWeight = 1;
-    private animationMixer: Component;
     private static readonly ROTATE_SPEED_MIN_HEAD = THREE.Math.degToRad(100); // 40 Degrees per second
     private static readonly ROTATE_SPEED_MIN_BODY = THREE.Math.degToRad(20); //  Degrees per second
     private static readonly EASING_START_ANGLE = THREE.Math.degToRad(20); //40
     private static readonly HEAD_YAW_MAX = 60; // 40 Degrees
     private static readonly HEAD_TILT_MAX = 40; // Degrees
-    private static readonly BODY_CLOSE_ENOUGH_ANGLE = THREE.Math.DEG2RAD * Watcher.HEAD_YAW_MAX;
+    //degrees of slop off HEAD_YAW_MAX needed for direct lookat
+    private static readonly BODY_CLOSE_ENOUGH_ANGLE = THREE.Math.DEG2RAD * (Watcher.HEAD_YAW_MAX - 10);
 
     constructor() {
         super({
@@ -57,9 +57,6 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
     load(model: THREE.Object3D) {
         this.model = model;
         this.headBone = this.model.getObjectByName(this.data.headBone) as THREE.Bone;
-        if ('animation-mixer-tick' in this.el.components) {
-            this.animationMixer = this.el.components['animation-mixer-tick'];
-        }
     }
 
     update(oldData) {
@@ -69,6 +66,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                 const targetEl: Entity = this.el.sceneEl.querySelector(data.lookAtID);
                 if (targetEl) {
                     this.lookAtTarget = targetEl.object3D;
+                    this.lastQ.copy(this.headBone.quaternion);
                 } else {
                     this.lookAtTarget = null;
                     console.log('Watcher got nothing for lookAt target with querySelector(' + data.lookAtID + ')');
@@ -95,20 +93,13 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
     }
 
     tick = (function() {
-        const q1 = new THREE.Quaternion();
         return function(t, dt) {
             if (this.model) {
-                if (this.headBone && this.lookAtTarget) {
-                    //save rotation before animation overwrites
-                    q1.copy(this.headBone.quaternion);
-                }
-                if (this.animationMixer) {
-                    this.animationMixer.tickManual(t, dt); // Update built in animation
-                }
                 if (this.headBone) {
                     if (this.lookAtTarget) {
-                        this.headBone.quaternion.copy(q1);
+                        this.headBone.quaternion.copy(this.lastQ);
                         this.doLookat(dt);
+                        this.lastQ.copy(this.headBone.quaternion);
                     } else if (this.mixerWeight < 1) {
                         // no lookat target
                         this.headBone.quaternion.slerp(this.lastQ, 1 - this.mixerWeight);
