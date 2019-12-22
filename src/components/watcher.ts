@@ -1,4 +1,4 @@
-import { Entity, THREE, Component } from 'aframe';
+import { Entity, THREE } from 'aframe';
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
 import { ANIME } from 'aframe';
@@ -13,6 +13,7 @@ interface WatcherSchema {
 export class Watcher extends ComponentWrapper<WatcherSchema> {
     private model: THREE.Object3D;
     private headBone: THREE.Bone;
+    private eyeBones: [THREE.Bone, THREE.Bone];
     private eyeOffset = new THREE.Matrix4().makeTranslation(0, 0.11, 0);
     private lastQ = new THREE.Quaternion();
     private lookAtTarget: THREE.Object3D;
@@ -20,9 +21,12 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
     private static readonly ROTATE_SPEED_MIN_HEAD = THREE.Math.degToRad(100); // 40 Degrees per second
     private static readonly ROTATE_SPEED_MIN_BODY = THREE.Math.degToRad(20); //  Degrees per second
     private static readonly EASING_START_ANGLE = THREE.Math.degToRad(20); //40
-    private static readonly HEAD_YAW_MAX = 60; // 40 Degrees
+    private static readonly HEAD_YAW_MAX = 50; // 40 Degrees
     private static readonly HEAD_TILT_MAX = 40; // Degrees
-    //degrees of slop off HEAD_YAW_MAX needed for direct lookat
+    private static readonly EYE_TWIST_MAX = 180; // Degrees todo twist on eyes not needed
+    private static readonly EYE_SWING_MAX = 20; // Degrees
+    private static readonly HEAD_CLOSE_ENOUGH_ANGLE = THREE.Math.DEG2RAD * 5; //todo limit this to just yaw to level out chin?
+    //todo degrees of slop off HEAD_YAW_MAX needed for direct lookat
     private static readonly BODY_CLOSE_ENOUGH_ANGLE = THREE.Math.DEG2RAD * (Watcher.HEAD_YAW_MAX - 10);
 
     constructor() {
@@ -57,6 +61,10 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
     load(model: THREE.Object3D) {
         this.model = model;
         this.headBone = this.model.getObjectByName(this.data.headBone) as THREE.Bone;
+        this.eyeBones = [
+            this.model.getObjectByName('mixamorigLeftEye') as THREE.Bone,
+            this.model.getObjectByName('mixamorigRightEye') as THREE.Bone,
+        ];
     }
 
     update(oldData) {
@@ -75,6 +83,8 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                 this.lookAtTarget = null;
                 if (this.headBone) {
                     this.mixerWeight = 0;
+                    this.eyeBones[0].quaternion.set(0, 0, 0, 1);
+                    this.eyeBones[1].quaternion.set(0, 0, 0, 1);
                     this.lastQ.copy(this.headBone.quaternion);
                     ANIME({
                         targets: this,
@@ -120,16 +130,45 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
 
         const q1 = new THREE.Quaternion();
         const q2 = new THREE.Quaternion();
+        const Z_AXIS_Q = new THREE.Quaternion();
+        //Z_AXIS_Q.normalize();
 
         return function(dt) {
             if (this.headBone && this.lookAtTarget) {
                 lookAtPos.setFromMatrixPosition(this.lookAtTarget.matrixWorld);
 
-                this.headBone.updateWorldMatrix(true, false);
+                this.headBone.updateWorldMatrix(true, true);
                 m1.copy(this.headBone.matrixWorld);
                 m1.premultiply(this.eyeOffset);
 
-                let bone = this.headBone;
+                //EYES
+                let bone = this.eyeBones[0];
+                v1.setFromMatrixPosition(m1);
+                v2.setFromMatrixColumn(bone.parent.matrixWorld, 1);
+                v2.normalize();
+                m2.lookAt(lookAtPos, v1, v2); //pointing to target
+
+                q1.setFromRotationMatrix(m2); //target quat
+                m2.extractRotation(bone.matrixWorld);
+                q2.setFromRotationMatrix(m2); //current quat xxx
+
+                let angleDiff = q2.angleTo(q1); //bone to target angle
+
+                m2.extractRotation(bone.matrixWorld); //need extractRotation
+                q2.setFromRotationMatrix(m2);
+
+                this.rotateTowards(q1, q2, angleDiff, Watcher.ROTATE_SPEED_MIN_HEAD * 5, dt);
+
+                m2.extractRotation(bone.parent.matrixWorld);
+                q2.setFromRotationMatrix(m2);
+                q1.premultiply(q2.inverse());
+                //constrain rotation
+                this.constrainEyes(q1);
+                bone.quaternion.copy(q1);
+                this.eyeBones[1].quaternion.copy(q1); //good enough
+
+                //HEAD
+                bone = this.headBone;
                 v1.setFromMatrixPosition(m1);
                 v2.setFromMatrixColumn(bone.parent.matrixWorld, 1);
                 v2.normalize();
@@ -141,21 +180,23 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                 m2.extractRotation(m1);
                 q2.setFromRotationMatrix(m2); //effector current quat
 
-                let angleDiff = q2.angleTo(q1); //effector to target angle
+                angleDiff = q2.angleTo(q1); //effector to target angle
 
-                m1.extractRotation(bone.matrixWorld); //extractRotation needed
-                q2.setFromRotationMatrix(m1);
+                let angleLeft = angleDiff - Watcher.HEAD_CLOSE_ENOUGH_ANGLE;
+                if (angleLeft > 0) {
+                    m1.extractRotation(bone.matrixWorld); //extractRotation needed
+                    q2.setFromRotationMatrix(m1);
 
-                this.rotateTowards(q1, q2, angleDiff, Watcher.ROTATE_SPEED_MIN_HEAD, dt);
+                    this.rotateTowards(q1, q2, angleLeft, Watcher.ROTATE_SPEED_MIN_HEAD, dt);
 
-                m1.extractRotation(bone.parent.matrixWorld);
-                q2.setFromRotationMatrix(m1);
-                q1.premultiply(q2.inverse());
-                bone.quaternion.copy(q1);
+                    m2.extractRotation(bone.parent.matrixWorld);
+                    q2.setFromRotationMatrix(m2);
+                    q1.premultiply(q2.inverse());
+                    bone.quaternion.copy(q1);
+                    this.constrainHead(bone.quaternion);
+                }
 
-                this.constrainSwingTwist(bone.quaternion);
-
-                //do body now
+                //BODY
                 bone = this.model;
 
                 v1.setFromMatrixPosition(bone.matrixWorld); //todo lookat from bone or effector position?
@@ -165,20 +206,20 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                 m2.lookAt(lookAtPos, v1, v2); //bone pointing to target
                 q1.setFromRotationMatrix(m2); //bone target quat in world
 
-                m1.extractRotation(bone.matrixWorld);
-                q2.setFromRotationMatrix(m1); //bone current quat
+                m2.extractRotation(bone.matrixWorld);
+                q2.setFromRotationMatrix(m2); //bone current quat
                 angleDiff = q2.angleTo(q1); //bone to target angle
 
-                const angleLeft = angleDiff - Watcher.BODY_CLOSE_ENOUGH_ANGLE;
+                angleLeft = angleDiff - Watcher.BODY_CLOSE_ENOUGH_ANGLE;
                 if (angleLeft > 0) {
-                    m1.extractRotation(bone.matrixWorld); //extractRotation needed
-                    q2.setFromRotationMatrix(m1);
+                    m2.extractRotation(bone.matrixWorld); //extractRotation needed
+                    q2.setFromRotationMatrix(m2);
 
                     this.rotateTowards(q1, q2, angleLeft, Watcher.ROTATE_SPEED_MIN_BODY, dt);
 
                     //put in back in parent hierarchy
-                    m1.extractRotation(bone.parent.matrixWorld);
-                    q2.setFromRotationMatrix(m1);
+                    m2.extractRotation(bone.parent.matrixWorld);
+                    q2.setFromRotationMatrix(m2);
                     q1.premultiply(q2.inverse());
                     bone.quaternion.copy(q1);
                 }
@@ -203,10 +244,8 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
         };
     })();
 
-    constrainSwingTwist = (function() {
-        const v1 = new THREE.Vector3();
-        const q1 = new THREE.Quaternion();
-        const q2 = new THREE.Quaternion();
+    constrainHead = (function() {
+        const TWIST_AXIS = new THREE.Vector3().set(0, 1, 0);
 
         const TWIST_MAX = Math.sin(0.5 * THREE.Math.DEG2RAD * Watcher.HEAD_YAW_MAX);
         const TWIST_MAX_POW2 = TWIST_MAX * TWIST_MAX;
@@ -217,17 +256,59 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
         const SWING_MAX_W = Math.sqrt(1.0 - SWING_MAX_POW2);
 
         return function(qT) {
+            this.constrainSwingTwist(
+                qT,
+                TWIST_AXIS,
+                TWIST_MAX,
+                TWIST_MAX_POW2,
+                TWIST_MAX_W,
+                SWING_MAX,
+                SWING_MAX_POW2,
+                SWING_MAX_W,
+            );
+        };
+    })();
+
+    constrainEyes = (function() {
+        const TWIST_AXIS = new THREE.Vector3().set(0, 0, 1);
+
+        const TWIST_MAX = Math.sin(0.5 * THREE.Math.DEG2RAD * Watcher.EYE_TWIST_MAX);
+        const TWIST_MAX_POW2 = TWIST_MAX * TWIST_MAX;
+        const TWIST_MAX_W = Math.sqrt(1.0 - TWIST_MAX_POW2);
+
+        const SWING_MAX = Math.sin(0.5 * THREE.Math.DEG2RAD * Watcher.EYE_SWING_MAX);
+        const SWING_MAX_POW2 = SWING_MAX * SWING_MAX;
+        const SWING_MAX_W = Math.sqrt(1.0 - SWING_MAX_POW2);
+
+        return function(qT) {
+            this.constrainSwingTwist(
+                qT,
+                TWIST_AXIS,
+                TWIST_MAX,
+                TWIST_MAX_POW2,
+                TWIST_MAX_W,
+                SWING_MAX,
+                SWING_MAX_POW2,
+                SWING_MAX_W,
+            );
+        };
+    })();
+
+    constrainSwingTwist = (function() {
+        const v1 = new THREE.Vector3();
+        const q1 = new THREE.Quaternion();
+        const q2 = new THREE.Quaternion();
+
+        return function(qT, twistAxis, twistMax, twistPow2, twistW, swingMax, swingPow2, swingW) {
             //clamp rotation with swing + twist parameterization
             // https://stackoverflow.com/questions/3684269/component-of-a-quaternion-rotation-around-an-axis/4341489
             // https://stackoverflow.com/questions/32813626/constrain-pitch-yaw-roll/32846982
             // http://www.allenchou.net/2018/05/game-math-swing-twist-interpolation-sterp/
             // https://stackoverflow.com/questions/42428136/quaternion-is-flipping-sign-for-very-similar-rotations
-            //v1.set(qT.x, qT.y, qT.z); //todo check singularity: rotation by 180 degree if (r.sqrMagnitude < MathUtil.Epsilon) from Allen Chou
-            //v1.projectOnVector(this.headBone.up); //up is direction around twist
-            //v1.set(0, qT.y, 0); //project on y axis
-            //q1.set(v1.x, v1.y, v1.z, qT.w);
             //twist
-            q1.set(0, qT.y, 0, qT.w); //project on y then get twist
+            v1.set(qT.x, qT.y, qT.z); //todo check singularity: rotation by 180 degree if (r.sqrMagnitude < MathUtil.Epsilon) from Allen Chou
+            v1.projectOnVector(twistAxis);
+            q1.set(v1.x, v1.y, v1.z, qT.w);
             q1.normalize();
             //swing
             q2.copy(q1).conjugate();
@@ -235,16 +316,16 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
             q2.normalize();
             // Clamp twist angle
             v1.set(q1.x, q1.y, q1.z);
-            if (v1.lengthSq() > TWIST_MAX_POW2) {
-                v1.setLength(TWIST_MAX);
+            if (v1.lengthSq() > twistPow2) {
+                v1.setLength(twistMax);
                 const sign = qT.w < 0 ? -1 : 1;
-                q1.set(v1.x, v1.y, v1.z, sign * TWIST_MAX_W);
+                q1.set(v1.x, v1.y, v1.z, sign * twistW);
             }
             // Clamp swing angle
             v1.set(q2.x, q2.y, q2.z);
-            if (v1.lengthSq() > SWING_MAX_POW2) {
-                v1.setLength(SWING_MAX);
-                q2.set(v1.x, v1.y, v1.z, SWING_MAX_W); //todo don't know why perserving sign here causes jumps. cancels out twist clamp?
+            if (v1.lengthSq() > swingPow2) {
+                v1.setLength(swingMax);
+                q2.set(v1.x, v1.y, v1.z, swingW); //todo don't know why perserving sign here causes jumps. cancels out twist clamp?
             }
             qT.multiplyQuaternions(q2, q1); //swing * twist
         };

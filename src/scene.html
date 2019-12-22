@@ -10,12 +10,6 @@
   <!-- Todo why camera entity needs rotation compoent to avoid error (when assest time out?)
  -->
 
-  <!-- <a-entity id='user_head' camera="fov: 50"
-    bind__my-look-controls="pointerLockEnabled: !isShowInstructions; mouseEnabled: !isShowInstructions" 
-    bind__wasd-controls="enabled: !isShowInstructions"
-    position="0 1.6 2" rotation="0 0 0">
-  </a-entity> -->
-
   <a-entity id="rig" 
     position="0 0 2"    
     movement-controls="speed: .075; constrainToNavMesh: true"
@@ -24,7 +18,9 @@
       camera="fov: 50; near: .05"
       position="0 1.6 0"
       rotation="0 0 0"
-      bind__my-look-controls="pointerLockEnabled: !isShowInstructions; mouseEnabled: !isShowInstructions; touchEnabled: !isShowInstructions">
+      
+      look-controls='pointerLockEnabled: true'
+      bind__look-controls="enabled: !isShowInstructions">
     </a-entity>
   </a-entity>
     
@@ -34,7 +30,7 @@
   
   <a-entity sound="src: #pub-background; positional: false; autoplay: true; loop: true; volume: 1"></a-entity>
 
-  <a-entity id="startMenu" position="0 1.6 -3" bind-toggle__raycastable="isShowInstructions" bind__visible="!!isShowInstructions">
+  <a-entity id="startMenu" position="0 1.6 -3" bind-toggle__raycastable="!!isShowInstructions" bind__visible="!!isShowInstructions">
     <a-entity id="menuBackground" mixin="slice" slice9="height: 2; width: 2; color: #171717" render-order="menuBackground"></a-entity>
     <a-entity id="title" mixin="font" text="value: Pub Land; color: #FAFAFA; width: 9; align: center;" position="0 .7 0.01" render-order="menuItem"></a-entity>
     <a-entity id="controls" mixin="font" text="value: Turn - Mouse \n Move - WASD keys; color: #FAFAFA; width: 5; align: left; anchor: left;" position="-.95 .1 0.01" render-order="menuItem"></a-entity>
@@ -73,19 +69,18 @@
       gltf-model="#bartender-model"
       cube-env-map="path: assets/pub-env/; extension: jpg;"
       eyefix
-      animation-mixer="crossFadeDuration: .4;"
       bind__animation-mixer="clip: bartender.animationClip"
       blinker="morphFactor: 2"
       sound__whatdrink="src: #what-to-drink; rolloffFactor: .1;"
       talker="meshJawMorph: Body; jawMorph: MouthOpen; jawFactor: .02;"
       bind__talker="sound: bartender.speakSound"
+      animation-mixer="crossFadeDuration: .4;"
       watcher="headBone: mixamorigHead;"
       bind__watcher="lookAtID: bartender.lookAtID; speed: bartender.lookSpeed"
       bind__bartender="checkForProximity: !bartender.hasSaidHello"
     ></a-entity>
   </a-entitiy>
 
-  
   <a-entity id="mouseCursor" cursor="rayOrigin: mouse" raycaster="objects: [raycastable]"></a-entity>
   <a-entity id="leftHand" laser-controls="hand: left" raycaster="objects: [raycastable]"></a-entity>
   <a-entity id="rightHand" laser-controls="hand: right" raycaster="objects: [raycastable]"></a-entity>
