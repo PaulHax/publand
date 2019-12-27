@@ -18,14 +18,14 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
     private lastQ = new THREE.Quaternion();
     private lookAtTarget: THREE.Object3D;
     private mixerWeight = 1;
-    private static readonly ROTATE_SPEED_MIN_HEAD = THREE.Math.degToRad(100); // 40 Degrees per second
-    private static readonly ROTATE_SPEED_MIN_BODY = THREE.Math.degToRad(20); //  Degrees per second
-    private static readonly EASING_START_ANGLE = THREE.Math.degToRad(20); //40
-    private static readonly HEAD_YAW_MAX = 50; // 40 Degrees
-    private static readonly HEAD_TILT_MAX = 40; // Degrees
-    private static readonly EYE_TWIST_MAX = 180; // Degrees todo twist on eyes not needed
-    private static readonly EYE_SWING_MAX = 20; // Degrees
-    private static readonly HEAD_CLOSE_ENOUGH_ANGLE = THREE.Math.DEG2RAD * 5; //todo limit this to just yaw to level out chin?
+    private static readonly ROTATE_SPEED_MIN_HEAD = THREE.Math.degToRad(100); // 100 Degrees per second
+    private static readonly ROTATE_SPEED_MIN_BODY = THREE.Math.degToRad(20); // 20 Degrees per second
+    private static readonly EASING_START_ANGLE = THREE.Math.degToRad(20); //20
+    private static readonly HEAD_YAW_MAX = 50; // 50 Degrees
+    private static readonly HEAD_TILT_MAX = 40; // 40 Degrees
+    private static readonly EYE_TWIST_MAX = 180; // todo twist on eyes not needed
+    private static readonly EYE_SWING_MAX = 15; // 20 Degrees
+    private static readonly HEAD_CLOSE_ENOUGH_ANGLE = THREE.Math.DEG2RAD * 5; //5 todo limit thiss to just yaw to level out chin?
     //todo degrees of slop off HEAD_YAW_MAX needed for direct lookat
     private static readonly BODY_CLOSE_ENOUGH_ANGLE = THREE.Math.DEG2RAD * (Watcher.HEAD_YAW_MAX - 10);
 
@@ -41,7 +41,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
             },
             speed: {
                 type: 'number',
-                default: THREE.Math.degToRad(200), //300
+                default: THREE.Math.degToRad(200), //200
             },
         });
     }
@@ -130,20 +130,51 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
 
         const q1 = new THREE.Quaternion();
         const q2 = new THREE.Quaternion();
-        const Z_AXIS_Q = new THREE.Quaternion();
-        //Z_AXIS_Q.normalize();
 
         return function(dt) {
             if (this.headBone && this.lookAtTarget) {
                 lookAtPos.setFromMatrixPosition(this.lookAtTarget.matrixWorld);
 
-                this.headBone.updateWorldMatrix(true, true);
-                m1.copy(this.headBone.matrixWorld);
-                m1.premultiply(this.eyeOffset);
+                // this.headBone.updateWorldMatrix(true, true);
+                // m1.copy(this.headBone.matrixWorld);
+                // m1.premultiply(this.eyeOffset);
+
+                //BODY
+                let bone = this.model;
+
+                // bone.updateWorldMatrix(true, false);
+                v1.setFromMatrixPosition(bone.matrixWorld); //todo lookat from bone or effector position?
+
+                v1.y = lookAtPos.y;
+                v2.set(0, 1, 0);
+                m2.lookAt(lookAtPos, v1, v2); //bone pointing to target
+                q1.setFromRotationMatrix(m2); //bone target quat in world
+
+                m2.extractRotation(bone.matrixWorld);
+                q2.setFromRotationMatrix(m2); //bone current quat
+                let angleDiff = q2.angleTo(q1); //bone to target angle
+
+                let angleLeft = angleDiff - Watcher.BODY_CLOSE_ENOUGH_ANGLE;
+                let didParentMove = false;
+                if (angleLeft > 0) {
+                    didParentMove = true;
+                    m2.extractRotation(bone.matrixWorld); //extractRotation needed
+                    q2.setFromRotationMatrix(m2);
+
+                    this.rotateTowards(q1, q2, angleLeft, Watcher.ROTATE_SPEED_MIN_BODY, dt);
+
+                    //put in back in parent hierarchy
+                    m2.extractRotation(bone.parent.matrixWorld);
+                    q2.setFromRotationMatrix(m2);
+                    q1.premultiply(q2.inverse());
+                    bone.quaternion.copy(q1);
+                }
 
                 //EYES
-                let bone = this.eyeBones[0];
-                v1.setFromMatrixPosition(m1);
+                bone = this.eyeBones[0];
+
+                // bone.updateWorldMatrix(true, false);
+                v1.setFromMatrixPosition(bone.matrixWorld);
                 v2.setFromMatrixColumn(bone.parent.matrixWorld, 1);
                 v2.normalize();
                 m2.lookAt(lookAtPos, v1, v2); //pointing to target
@@ -152,7 +183,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                 m2.extractRotation(bone.matrixWorld);
                 q2.setFromRotationMatrix(m2); //current quat xxx
 
-                let angleDiff = q2.angleTo(q1); //bone to target angle
+                angleDiff = q2.angleTo(q1); //bone to target angle
 
                 m2.extractRotation(bone.matrixWorld); //need extractRotation
                 q2.setFromRotationMatrix(m2);
@@ -169,23 +200,26 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
 
                 //HEAD
                 bone = this.headBone;
-                v1.setFromMatrixPosition(m1);
+                bone.updateWorldMatrix(true, false);
+                //v1.setFromMatrixPosition(m1);
+                v1.setFromMatrixPosition(this.eyeBones[0].matrixWorld);
                 v2.setFromMatrixColumn(bone.parent.matrixWorld, 1);
                 v2.normalize();
-                v2.y += 1; //Head likes to stay upright. Blend to world up 50%
+                //v2.y += 1; //Head likes to stay upright. Blend to world up
                 v2.normalize();
-                m2.lookAt(lookAtPos, v1, v2); //effector pointing to target
+                m2.lookAt(lookAtPos, v1, v2); //left eye pointing to target
 
-                q1.setFromRotationMatrix(m2); //effector target quat
-                m2.extractRotation(m1);
-                q2.setFromRotationMatrix(m2); //effector current quat
+                q1.setFromRotationMatrix(m2); //target quat
+                //m2.extractRotation(this.eyeBones[0].matrixWorld);
+                m2.extractRotation(bone.matrixWorld);
+                q2.setFromRotationMatrix(m2); //current quat
 
-                angleDiff = q2.angleTo(q1); //effector to target angle
+                angleDiff = q2.angleTo(q1);
 
-                let angleLeft = angleDiff - Watcher.HEAD_CLOSE_ENOUGH_ANGLE;
-                if (angleLeft > 0) {
-                    m1.extractRotation(bone.matrixWorld); //extractRotation needed
-                    q2.setFromRotationMatrix(m1);
+                angleLeft = angleDiff - Watcher.HEAD_CLOSE_ENOUGH_ANGLE;
+                if (angleLeft > 0 || didParentMove) {
+                    // m1.extractRotation(bone.matrixWorld); //extractRotation needed
+                    // q2.setFromRotationMatrix(m1);
 
                     this.rotateTowards(q1, q2, angleLeft, Watcher.ROTATE_SPEED_MIN_HEAD, dt);
 
@@ -195,34 +229,6 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                     bone.quaternion.copy(q1);
                     this.constrainHead(bone.quaternion);
                 }
-
-                //BODY
-                bone = this.model;
-
-                v1.setFromMatrixPosition(bone.matrixWorld); //todo lookat from bone or effector position?
-
-                v1.y = lookAtPos.y;
-                v2.set(0, 1, 0);
-                m2.lookAt(lookAtPos, v1, v2); //bone pointing to target
-                q1.setFromRotationMatrix(m2); //bone target quat in world
-
-                m2.extractRotation(bone.matrixWorld);
-                q2.setFromRotationMatrix(m2); //bone current quat
-                angleDiff = q2.angleTo(q1); //bone to target angle
-
-                angleLeft = angleDiff - Watcher.BODY_CLOSE_ENOUGH_ANGLE;
-                if (angleLeft > 0) {
-                    m2.extractRotation(bone.matrixWorld); //extractRotation needed
-                    q2.setFromRotationMatrix(m2);
-
-                    this.rotateTowards(q1, q2, angleLeft, Watcher.ROTATE_SPEED_MIN_BODY, dt);
-
-                    //put in back in parent hierarchy
-                    m2.extractRotation(bone.parent.matrixWorld);
-                    q2.setFromRotationMatrix(m2);
-                    q1.premultiply(q2.inverse());
-                    bone.quaternion.copy(q1);
-                }
             }
         };
     })();
@@ -231,7 +237,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
     rotateTowards = (function() {
         return function(targetQuat, lastQuat, angleDiff, baseSpeed, dt) {
             //cap speed
-            const n = Math.min(angleDiff / Watcher.EASING_START_ANGLE, 1); //normalize angle change: 0 to 1.  Over lookat process goes from 1 to 0.
+            const n = Math.min(angleDiff / Watcher.EASING_START_ANGLE, 1); //normalize angle change: 0 to 1.  Over lookat process it goes from 1 to 0.
             // decelerating to zero velocity
             const increasedSpeed = n * n * this.data.speed; //easing from https://gist.github.com/gre/1650294
             const speed = baseSpeed + increasedSpeed;
@@ -269,6 +275,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
         };
     })();
 
+    //todo no need for twist check
     constrainEyes = (function() {
         const TWIST_AXIS = new THREE.Vector3().set(0, 0, 1);
 
