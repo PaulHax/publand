@@ -26,6 +26,7 @@ let config =
   devServer: {
     // disableHostCheck: true,
     hotOnly: true,
+    https: true,
   },
   //entry set dynamicaly below
   output: {

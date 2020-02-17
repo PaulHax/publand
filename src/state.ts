@@ -1,4 +1,5 @@
 import 'aframe-state-component';
+import { THREE } from 'aframe';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
@@ -16,7 +17,7 @@ AFRAME.registerState({
             animationClip: 'idle',
             lookAtID: 'null',
             speakSound: '',
-            lookSpeed: AFRAME.THREE.Math.degToRad(150),
+            lookSpeed: THREE.Math.degToRad(150),
             hasSaidHello: false,
             timeoutID: -1,
         },
@@ -43,14 +44,14 @@ AFRAME.registerState({
                 state.bartender.animationClip = 'talking';
                 state.bartender.lookAtID = '#user_head';
                 state.bartender.speakSound = 'whatdrink';
-                state.bartender.lookSpeed = AFRAME.THREE.Math.degToRad(300);
+                state.bartender.lookSpeed = THREE.Math.degToRad(300);
                 state.bartender.timeoutID = setTimeout(() => {
                     AFRAME.scenes[0].emit('doBarWork');
                 }, 8000);
             }
         },
         doBarWork: state => {
-            state.bartender.lookSpeed = AFRAME.THREE.Math.degToRad(150);
+            state.bartender.lookSpeed = THREE.Math.degToRad(150);
             state.bartender.animationClip = 'idle';
             state.bartender.lookAtID = '#register_screen';
             state.bartender.timeoutID = setTimeout(() => {

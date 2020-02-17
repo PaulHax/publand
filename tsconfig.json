@@ -1,7 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "sourceMap": true,
+    "target": "ESNext",
     "moduleResolution": "node" //keep the import squglies away
   },
   "exclude": [
