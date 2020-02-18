@@ -74,7 +74,9 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                 const targetEl: Entity = this.el.sceneEl.querySelector(data.lookAtID);
                 if (targetEl) {
                     this.lookAtTarget = targetEl.object3D;
-                    this.lastQ.copy(this.headBone.quaternion);
+                    if (this.headBone) {
+                        this.lastQ.copy(this.headBone.quaternion);
+                    }
                 } else {
                     this.lookAtTarget = null;
                     console.log('Watcher got nothing for lookAt target with querySelector(' + data.lookAtID + ')');
@@ -196,7 +198,7 @@ export class Watcher extends ComponentWrapper<WatcherSchema> {
                 //constrain rotation
                 this.constrainEyes(q1);
                 bone.quaternion.copy(q1);
-                this.eyeBones[1].quaternion.copy(q1); //good enough
+                this.eyeBones[1].quaternion.copy(q1); //good enough to pick left eye
 
                 //HEAD
                 bone = this.headBone;

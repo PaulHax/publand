@@ -63,8 +63,8 @@ let config =
     extensions: [".ts", ".js"]
   },
   performance: {
-    maxEntrypointSize: 1500000,
-    maxAssetSize: 1500000
+    maxEntrypointSize: 1900000,
+    maxAssetSize: 1900000
   },
 }
 

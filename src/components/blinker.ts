@@ -1,8 +1,8 @@
 import { THREE } from 'aframe';
 import { ComponentWrapper } from '../aframe-typescript-toolkit';
 
-import { makeBlinker } from 'three-actor/src/Blink';
-import { makeBlink3D, makeBlinkTick } from 'three-actor/src/Blink3D';
+import { makeBlinker } from 'three-actor/lib/Blink';
+import { makeBlink3D, makeBlinkTick } from 'three-actor/lib/Blink3D';
 
 interface BlinkerSchema {
     readonly meshWithMorph: string;

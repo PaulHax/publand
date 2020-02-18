@@ -5,17 +5,19 @@
   <a-assets>
     <a-asset-item id="bartender-model" src="assets/bartender.glb"></a-asset-item>
     <!-- <audio id="what-to-drink" src="assets/asdf.mp3" preload="auto" loop autoplay></audio> -->
-    <audio id="saw-her-yesterday" src="assets/untitled.wav" preload="auto"></audio>
+    <audio id="saw-her-yesterday" src="assets/pub-background.mp3" preload="auto"></audio>
     <audio id="what-to-drink" src="assets/what-to-drink.mp3" preload="auto"></audio>
   </a-assets>
   
+    <!--  -->
   <a-entity id='bartender' position="-.281 0 -3.6"
     gltf-model="#bartender-model"
     eyefix
-    animation-mixer-tick="clip: idle; crossFadeDuration: .3;"
-    sound__whatdrink="src: #what-to-drink;"
+    blinker="morphFactor: 2"
     sound__sawher="src: #saw-her-yesterday;"
+    sound__whatdrink="src: #what-to-drink;"
     talker="meshJawMorph: Body; jawMorph: MouthOpen; jawFactor: .02;"
+    animation-mixer="clip: idle; crossFadeDuration: .4;"
     watcher="lookAtID: #user_head; headBone: mixamorigHead;"
     cube-env-map="path: assets/pub-env/; extension: jpg;"
     scale=".5 .5 .5"
