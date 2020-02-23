@@ -14,7 +14,6 @@ interface TalkerSchema {
 
 type TalkingEntity = Entity<{
     sound: { playSound(threeAudioObjCallback): void };
-    sceneEl: { audioListener: THREE.AudioListener };
 }>;
 
 interface SoundComponent extends Component {

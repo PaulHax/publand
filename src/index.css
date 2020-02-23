@@ -2,6 +2,12 @@ html {
   background: #000;
 }
 
+#app {
+  position: absolute; 
+  height: 100%; 
+  width: 100%;
+}
+
 .a-loader-title {
   animation: loaderTitle 3s infinite alternate;
   color: rgba(0,0,0,0);

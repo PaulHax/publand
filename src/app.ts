@@ -36,8 +36,6 @@ requireAll(require.context('./components/', true, /\.js$/));
 registerComponent('raycastable', {});
 
 require('./index.css');
-
-require('./start.html'); // inject into index.html with hot reloading
 require('./scene.html'); // inject into index.html with hot reloading
 
 // function logKey(e) {
@@ -66,3 +64,15 @@ function initSound() {
 window.addEventListener('keydown', initSound);
 window.addEventListener('mousedown', initSound);
 window.addEventListener('touchstart', initSound);
+
+//To test on windows
+//C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --ignore-certificate-errors --unsafely-treat-insecure-origin-as-secure=https://localhost:3000
+if (process.env.NODE_ENV === 'production') {
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/service-worker.js').catch(err => {
+                console.log('😥 Service worker registration failed: ', err);
+            });
+        });
+    }
+}

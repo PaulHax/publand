@@ -1,4 +1,6 @@
-<a-scene id="thescene" toggle-stats shadow="enabled: false"
+<a-scene id="thescene" 
+  toggle-stats 
+  shadow="enabled: false"
   gltf-model="dracoDecoderPath: assets/dracolib/;"
   renderer="colorManagement: true; antialias: false;"
   loading-screen="backgroundColor: black;"
@@ -31,7 +33,7 @@
 
   <a-entity id="startMenu" position="0 1.6 -3" bind-toggle__raycastable="!!isShowInstructions" bind__visible="!!isShowInstructions">
     <a-entity id="menuBackground" mixin="slice" slice9="height: 2; width: 2; color: #171717" render-order="menuBackground"></a-entity>
-    <a-entity id="title" mixin="font" text="value: PubLand; color: #FAFAFA; width: 9; align: center;" position="0 .7 0.01" render-order="menuItem"></a-entity>
+    <a-entity id="title" mixin="font" text="value: Pub Land; color: #FAFAFA; width: 9; align: center;" position="0 .7 0.01" render-order="menuItem"></a-entity>
     <a-entity id="controls" mixin="font" text="value: Turn - Mouse \n Move - WASD keys; color: #FAFAFA; width: 5; align: left; anchor: left;" position="-.95 .1 0.01" render-order="menuItem"></a-entity>
     <a-entity id="loadingText" mixin="font" text="value: Loading...; color: #FAFAFA; width: 5; align: center;" position="0 -.5 0.01" render-order="menuItem"
       animation__fadein="property: components.text.material.uniforms.opacity.value; from: .8; to: 1.0; dur: 1000; loop: true; dir: alternate; autoplay: true; pauseEvents: roomLoaded"
