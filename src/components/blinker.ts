@@ -59,9 +59,9 @@ export class Blinker extends ComponentWrapper<BlinkerSchema> {
         }
     }
 
-    tick(t) {
+    tick(t, dt) {
         if (this.tickBlinker) {
-            this.tickBlinker(t);
+            this.tickBlinker(dt / 1000);
         }
     }
 }

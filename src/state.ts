@@ -1,5 +1,4 @@
 import 'aframe-state-component';
-import { THREE } from 'aframe';
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
 // @ts-ignore
@@ -15,9 +14,8 @@ AFRAME.registerState({
         isRoomLoaded: false,
         bartender: {
             animationClip: 'idle',
-            lookAtID: 'null',
+            lookAtID: '',
             speakSound: '',
-            lookSpeed: THREE.Math.degToRad(150),
             hasSaidHello: false,
             timeoutID: -1,
         },
@@ -38,20 +36,18 @@ AFRAME.registerState({
         closeToBartender: state => {
             if (!state.bartender.hasSaidHello) {
                 if (state.bartender.timeoutID !== -1) {
-                    clearTimeout(state.bartender.timeoutID);
+                    clearTimeout(state.bartender.timeoutID); //turn off barwork idle
                 }
                 state.bartender.hasSaidHello = true;
                 state.bartender.animationClip = 'talking';
                 state.bartender.lookAtID = '#user_head';
                 state.bartender.speakSound = 'whatdrink';
-                state.bartender.lookSpeed = THREE.Math.degToRad(300);
                 state.bartender.timeoutID = setTimeout(() => {
                     AFRAME.scenes[0].emit('doBarWork');
                 }, 8000);
             }
         },
         doBarWork: state => {
-            state.bartender.lookSpeed = THREE.Math.degToRad(150);
             state.bartender.animationClip = 'idle';
             state.bartender.lookAtID = '#register_screen';
             state.bartender.timeoutID = setTimeout(() => {
@@ -60,7 +56,7 @@ AFRAME.registerState({
         },
         lookAround: state => {
             state.bartender.animationClip = 'look around';
-            state.bartender.lookAtID = 'null';
+            state.bartender.lookAtID = '';
             state.bartender.timeoutID = setTimeout(() => {
                 AFRAME.scenes[0].emit('doBarWork');
             }, 1000 + 1000 * Math.random());

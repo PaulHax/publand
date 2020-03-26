@@ -24,7 +24,7 @@ import 'aframe-extras/src/loaders/animation-mixer';
 import 'aframe-slice9-component';
 import 'aframe-render-order-component';
 
-import { THREE, registerComponent } from 'aframe';
+import { registerComponent } from 'aframe';
 import './state';
 
 //webpack up js components
@@ -37,33 +37,6 @@ registerComponent('raycastable', {});
 
 require('./index.css');
 require('./scene.html'); // inject into index.html with hot reloading
-
-// function logKey(e) {
-//     const bman = document.querySelector('#bartender');
-//     if (e.code === 'Space') {
-//         bman.components.talker.speak('whatdrink');
-//     }
-// }
-// window.addEventListener('keydown', logKey);
-
-// After user does something, can init AudioContext for background sound.
-function initSound() {
-    //aframe sound componet looks for context on scene object
-    const scene = (document.querySelector('#thescene') as unknown) as THREE.Scene & {
-        audioListener: THREE.AudioListener;
-    };
-    if (!scene.audioListener) {
-        scene.audioListener = new THREE.AudioListener();
-    }
-    scene.audioListener.context.resume();
-    window.removeEventListener('keydown', initSound);
-    window.removeEventListener('mousedown', initSound);
-    window.removeEventListener('touchstart', initSound);
-}
-
-window.addEventListener('keydown', initSound);
-window.addEventListener('mousedown', initSound);
-window.addEventListener('touchstart', initSound);
 
 //To test on windows
 //C:\Program Files (x86)\Google\Chrome\Application\chrome.exe --ignore-certificate-errors --unsafely-treat-insecure-origin-as-secure=https://localhost:3000
